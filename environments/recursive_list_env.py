@@ -737,10 +737,10 @@ class QuickSortRecursiveListEnv(Environment):
         return self.compare_state(state, new_state)
 
     def _lshift_precondition(self):
-        return self.p1_pos > self.start_pos or self.p2_pos > self.start_pos
+        return self.p1_pos > self.start_pos or self.p2_pos > self.start_pos or self.p3_pos > self.start_pos
 
     def _rshift_precondition(self):
-        return self.p1_pos < self.end_pos or self.p2_pos < self.end_pos
+        return self.p1_pos < self.end_pos or self.p2_pos < self.end_pos or self.p3_pos < self.end_pos
 
     def _partition_precondition(self):
         partition_index = self.programs_library['PARTITION']['index']
