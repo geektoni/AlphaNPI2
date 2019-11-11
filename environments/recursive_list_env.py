@@ -491,7 +491,7 @@ class QuickSortRecursiveListEnv(Environment):
                                  'COMPSWAP': {'level': 1, 'recursive': False},
                                  'RESET': {'level': 2, 'recursive': True},
                                  'PARTITION': {'level': 2, 'recursive': True},
-                                 'QUICKSORT ': {'level': 3, 'recursive': True}}
+                                 'QUICKSORT': {'level': 3, 'recursive': True}}
 
         for i, key in enumerate(sorted(list(self.programs_library.keys()))):
             self.programs_library[key]['index'] = i
@@ -511,8 +511,8 @@ class QuickSortRecursiveListEnv(Environment):
                                      'LSHIFT': self._lshift_precondition,
                                      'COMPSWAP': self._compswap_precondition,
                                      'RESET': self._reset_precondition,
-                                     'BUBBLE': self._bubble_precondition,
-                                     'BUBBLESORT': self._bubblesort_precondition,
+                                     'PARTITION': self._partition_precondition,
+                                     'QUICKSORT': self._quicksort_precondition,
                                      'PTR_1_LEFT': self._ptr_1_left_precondition,
                                      'PTR_2_LEFT': self._ptr_2_left_precondition,
                                      'PTR_3_LEFT': self._ptr_3_left_precondition,
@@ -628,7 +628,7 @@ class QuickSortRecursiveListEnv(Environment):
 
     def _swap_3(self):
         assert self._swap_3_precondition(), 'precondition not verified'
-        self.scratchpad_ints[[self.p2_pos, self.p3_pos]] = self.scratchpad_ints[[self.p3_pos, self.p2_pos]]
+        self.scratchpad_ints[[self.p1_pos, self.p3_pos]] = self.scratchpad_ints[[self.p3_pos, self.p1_pos]]
 
     def _swap_3_precondition(self):
         return self.p2_pos != self.p3_pos
@@ -726,7 +726,7 @@ class QuickSortRecursiveListEnv(Environment):
             arr[[low, high]] = arr[[high, low]]
             return arr, low, high, j;
 
-    def _paritition_postcondition(self, init_state, state):
+    def _partition_postcondition(self, init_state, state):
         new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos = init_state
         new_scratchpad_ints = np.copy(new_scratchpad_ints)
         new_scratchpad_ints, low, high, j = self._partition_function(new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos)
@@ -769,7 +769,7 @@ class QuickSortRecursiveListEnv(Environment):
         bool &= self.p2_pos == self.start_pos
         bool &= self.p3_pos == self.start_pos
         quicksort_index = self.programs_library['QUICKSORT']['index']
-        if self.current_task_index == bubblesort_index:
+        if self.current_task_index == quicksort_index:
             bool &= self._decr_length_right_precondition()
         return bool
 
@@ -839,6 +839,7 @@ class QuickSortRecursiveListEnv(Environment):
         elif current_task_name == 'COMPSWAP':
             init_pointers_pos1 = int(np.random.randint(0, self.length - 1))
             init_pointers_pos2 = int(np.random.choice([init_pointers_pos1, init_pointers_pos1 + 1]))
+            init_pointers_pos3 = int(np.random.randint(0, self.length - 1))
         else:
             raise NotImplementedError('Unable to reset env for this program...')
 
