@@ -811,7 +811,7 @@ class QuickSortRecursiveListEnv(Environment):
         self.end_pos = self.length-1
         self.scratchpad_ints = np.random.randint(10, size=self.length)
         current_task_name = self.get_program_from_index(self.current_task_index)
-        if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT':
+        if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT' or current_task_name == 'QUICKSORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
             init_pointers_pos3 = 0
@@ -840,7 +840,15 @@ class QuickSortRecursiveListEnv(Environment):
             init_pointers_pos1 = int(np.random.randint(0, self.length - 1))
             init_pointers_pos2 = int(np.random.choice([init_pointers_pos1, init_pointers_pos1 + 1]))
             init_pointers_pos3 = int(np.random.randint(0, self.length - 1))
+        elif current_task_name == 'PARTITION':
+            while True:
+                init_pointers_pos2 = int(np.random.randint(0, self.length - 1))
+                if not init_pointers_pos2 == 0:
+                    break
+            init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
+            init_pointers_pos3 = init_pointers_pos1
         else:
+
             raise NotImplementedError('Unable to reset env for this program...')
 
         self.p1_pos = init_pointers_pos1
