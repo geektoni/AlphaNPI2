@@ -869,14 +869,14 @@ class QuickSortRecursiveListEnv(Environment):
             init_pointers_pos3 = int(np.random.randint(0, self.length - 1))
         elif current_task_name == 'PARTITION':
             while True:
-                init_pointers_pos2 = int(np.random.randint(0, self.length - 1))
+                init_pointers_pos2 = int(np.random.randint(0, self.length))
                 if not init_pointers_pos2 == 0:
                     break
             init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
             init_pointers_pos3 = init_pointers_pos1
         elif current_task_name == 'PARTITION_UPDATE':
             while True:
-                init_pointers_pos2 = int(np.random.randint(0, self.length - 1))
+                init_pointers_pos2 = int(np.random.randint(0, self.length))
                 if not init_pointers_pos2 == 0:
                     break
             init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
