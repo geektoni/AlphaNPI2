@@ -485,6 +485,7 @@ class QuickSortRecursiveListEnv(Environment):
                                  'PTR_3_LEFT': {'level': 0, 'recursive': False},
                                  'PTR_3_RIGHT': {'level': 0, 'recursive': False},
                                  'SWAP': {'level': 0, 'recursive': False},
+                                 'SWAP_2': {'level': 0, 'recursive': False},
                                  'SWAP_3': {'level': 0, 'recursive': False},
                                  'RSHIFT': {'level': 1, 'recursive': False},
                                  'LSHIFT': {'level': 1, 'recursive': False},
@@ -504,6 +505,7 @@ class QuickSortRecursiveListEnv(Environment):
                              'PTR_2_RIGHT': self._ptr_2_right,
                              'PTR_3_RIGHT': self._ptr_3_right,
                              'SWAP': self._swap,
+                             'SWAP_2': self._swap_2,
                              'SWAP_3': self._swap_3}
 
         self.prog_to_precondition = {'STOP': self._stop_precondition,
@@ -520,6 +522,7 @@ class QuickSortRecursiveListEnv(Environment):
                                      'PTR_2_RIGHT': self._ptr_2_right_precondition,
                                      'PTR_3_RIGHT': self._ptr_3_right_precondition,
                                      'SWAP': self._swap_precondition,
+                                     'SWAP_2': self._swap_2_precondition,
                                      'SWAP_3': self._swap_3_precondition}
 
         self.prog_to_postcondition = {'RSHIFT': self._rshift_postcondition,
@@ -538,7 +541,7 @@ class QuickSortRecursiveListEnv(Environment):
             self.end_pos -= 1
 
     def _decr_length_right_precondition(self):
-        return self.end_pos > self.start_pos and (self.p1_pos < self.end_pos and self.p2_pos < self.end_pos)
+        return self.end_pos > self.start_pos and (self.p1_pos < self.end_pos and self.p2_pos < self.end_pos and self.p3_pos < self.end_pos)
 
     def _decr_length_left(self):
         assert self._decr_length_left_precondition(), 'precondition not verified'
@@ -546,7 +549,7 @@ class QuickSortRecursiveListEnv(Environment):
             self.start_pos += 1
 
     def _decr_length_left_precondition(self):
-        return self.start_pos < self.end_pos and (self.p1_pos > self.start_pos and self.p2_pos > self.start_pos)
+        return self.start_pos < self.end_pos and (self.p1_pos > self.start_pos and self.p2_pos > self.start_pos and self.p3_pos > self.start_pos)
 
     def _incr_length_left(self):
         assert self._incr_length_left_precondition(), 'precondition not verified'
@@ -626,12 +629,19 @@ class QuickSortRecursiveListEnv(Environment):
     def _swap_precondition(self):
         return self.p1_pos != self.p2_pos
 
+    def _swap_2(self):
+        assert self._swap_2_precondition(), 'precondition not verified'
+        self.scratchpad_ints[[self.p2_pos, self.p3_pos]] = self.scratchpad_ints[[self.p3_pos, self.p2_pos]]
+
+    def _swap_2_precondition(self):
+        return self.p2_pos != self.p3_pos
+
     def _swap_3(self):
         assert self._swap_3_precondition(), 'precondition not verified'
         self.scratchpad_ints[[self.p1_pos, self.p3_pos]] = self.scratchpad_ints[[self.p3_pos, self.p1_pos]]
 
     def _swap_3_precondition(self):
-        return self.p2_pos != self.p3_pos
+        return self.p1_pos != self.p3_pos
 
     def _compswap_precondition(self):
         list_length = self.end_pos - self.start_pos + 1
@@ -758,7 +768,7 @@ class QuickSortRecursiveListEnv(Environment):
         return bool
 
     def _reset_precondition(self):
-        bool = (self.p1_pos > self.start_pos or self.p2_pos > self.start_pos)
+        bool = (self.p1_pos > self.start_pos or self.p2_pos > self.start_pos or self.p3_pos > self.start_pos)
         reset_index = self.programs_library['RESET']['index']
         if self.current_task_index == reset_index:
             bool &= self._decr_length_right_precondition()
@@ -869,14 +879,14 @@ class QuickSortRecursiveListEnv(Environment):
         p3_val = self.scratchpad_ints[self.p3_pos]
         is_sorted = int(self._is_sorted())
         pointers_same_pos = int(self.p1_pos == self.p2_pos)
-        pointers3_same_pos = int(self.p2_pos == self.p3_pos)
+        pointers3_same_pos = int(self.p1_pos == self.p3_pos)
         pt_1_left = int(self.p1_pos == self.start_pos)
         pt_2_left = int(self.p2_pos == self.start_pos)
         pt_3_left = int(self.p3_pos == self.start_pos)
         pt_1_right = int(self.p1_pos == self.end_pos)
         pt_2_right = int(self.p2_pos == self.end_pos)
-        pt_3_right = int(self.p2_pos == self.end_pos)
-        p1p2 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)  # one hot encoding of values at pointers pos
+        pt_3_right = int(self.p3_pos == self.end_pos)
+        p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)  # one hot encoding of values at pointers pos
         bools = np.array([
             pt_1_left,
             pt_1_right,
@@ -888,7 +898,7 @@ class QuickSortRecursiveListEnv(Environment):
             pointers3_same_pos,
             is_sorted
         ])
-        return np.concatenate((p1p2, bools), axis=0)
+        return np.concatenate((p1p2p3, bools), axis=0)
 
     def get_observation_dim(self):
         """
@@ -971,18 +981,18 @@ class QuickSortRecursiveListEnv(Environment):
     def start_task(self, task_index):
         if self.tasks_list.count(task_index) > 0:
             task = self.get_program_from_index(task_index)
-            if task == 'RESET' or task == 'BUBBLESORT':
+            if task == 'RESET' or task == 'QUICKSORT':
                 self._decr_length_right()
-            if task == 'BUBBLE':
+            if task == 'PARTITION':
                 self._decr_length_left()
         return super(QuickSortRecursiveListEnv, self).start_task(task_index)
 
     def end_task(self):
         current_task = self.get_program_from_index(self.current_task_index)
-        if current_task == 'RESET' or current_task == 'BUBBLESORT':
+        if current_task == 'RESET' or current_task == 'QUICKSORT':
             if self.tasks_list.count(self.current_task_index) > 1:
                 self._incr_length_right()
-        if current_task == 'BUBBLE':
+        if current_task == 'PARTITION':
             if self.tasks_list.count(self.current_task_index) > 1:
                 self._incr_length_left()
         super(QuickSortRecursiveListEnv, self).end_task()
