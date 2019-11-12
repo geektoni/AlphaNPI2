@@ -948,6 +948,11 @@ class QuickSortRecursiveListEnv(Environment):
         pt_2_right = int(self.p2_pos == self.end_pos)
         pt_3_right = int(self.p3_pos == self.end_pos)
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)  # one hot encoding of values at pointers pos
+        prog_stack = np.array([])
+        if len(self.prog_stack) > 0:
+            prog_stack = np.zeros((len(self.prog_stack), max(self.prog_stack)))
+            prog_stack[np.arange(len(self.prog_stack)),self.prog_stack] = 1
+            prog_stack = prog_stack.reshape(-1)
         bools = np.array([
             pt_1_left,
             pt_1_right,
@@ -959,7 +964,7 @@ class QuickSortRecursiveListEnv(Environment):
             pointers3_same_pos,
             is_sorted
         ])
-        return np.concatenate((p1p2p3, bools), axis=0)
+        return np.concatenate((p1p2p3, bools, prog_stack), axis=0)
 
     def get_observation_dim(self):
         """
@@ -967,7 +972,7 @@ class QuickSortRecursiveListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + 9
+        return 3 * 10 + len(self.prog_stack)*10 + 9
 
     def get_state(self):
         """Returns the current state.
