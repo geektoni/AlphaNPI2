@@ -734,7 +734,7 @@ class QuickSortRecursiveListEnv(Environment):
 
     def _partition_function(self, arr, low, high, j):
         if j <= high:
-            arr, low, high, j = self._partition_update_function()
+            arr, low, high, j = self._partition_update_function(arr, low, high, j)
             return self._partition_function(arr, low, high, j)
         else:
             arr[[low, high]] = arr[[high, low]]
