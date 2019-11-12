@@ -474,6 +474,7 @@ class QuickSortRecursiveListEnv(Environment):
         self.p1_pos = 0
         self.p2_pos = 0
         self.p3_pos = 0
+        self.prog_stack = []
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
 
@@ -487,6 +488,9 @@ class QuickSortRecursiveListEnv(Environment):
                                  'SWAP': {'level': 0, 'recursive': False},
                                  'SWAP_2': {'level': 0, 'recursive': False},
                                  'SWAP_3': {'level': 0, 'recursive': False},
+                                 'PUSH': {'level': 0, 'recursive': False},
+                                 'POP_2': {'level': 0, 'recursive': False},
+                                 'POP_3': {'level': 0, 'recursive': False},
                                  'RSHIFT': {'level': 1, 'recursive': False},
                                  'LSHIFT': {'level': 1, 'recursive': False},
                                  'PARTITION_UPDATE': {'level': 1, 'recursive': False},
@@ -506,7 +510,10 @@ class QuickSortRecursiveListEnv(Environment):
                              'PTR_3_RIGHT': self._ptr_3_right,
                              'SWAP': self._swap,
                              'SWAP_2': self._swap_2,
-                             'SWAP_3': self._swap_3}
+                             'SWAP_3': self._swap_3,
+                             'PUSH': self._push,
+                             'POP_2': self._pop_2,
+                             'POP_3': self._pop_3}
 
         self.prog_to_precondition = {'STOP': self._stop_precondition,
                                      'RSHIFT': self._rshift_precondition,
@@ -523,7 +530,10 @@ class QuickSortRecursiveListEnv(Environment):
                                      'PTR_3_RIGHT': self._ptr_3_right_precondition,
                                      'SWAP': self._swap_precondition,
                                      'SWAP_2': self._swap_2_precondition,
-                                     'SWAP_3': self._swap_3_precondition}
+                                     'SWAP_3': self._swap_3_precondition,
+                                     'PUSH': self._push_precondition,
+                                     'POP_2': self._pop_2_precondition,
+                                     'POP_3': self._pop_3_precondition}
 
         self.prog_to_postcondition = {'RSHIFT': self._rshift_postcondition,
                                      'LSHIFT': self._lshift_postcondition,
@@ -642,6 +652,32 @@ class QuickSortRecursiveListEnv(Environment):
 
     def _swap_3_precondition(self):
         return self.p1_pos != self.p3_pos
+
+    def _push(self):
+        assert self._push_precondition(), 'precondition not verified'
+        self.prog_stack.append(self.p3_pos)
+        self.prog_stack.append(self.p2_pos)
+        self.prog_stack.append(self.p3_pos)
+        self.prog_stack.append(self.p1_pos)
+        self.prog_stack.append(self.p3_pos)
+
+    def _push_precondition(self):
+        return True
+
+    def _pop_2(self):
+        self.p2_pos = self.prog_stack.pop()
+        self.p3_pos = self.prog_stack.pop()
+
+    def _pop_2_precondition(self):
+        return len(self.prog_stack) >= 2
+
+    def _pop_3(self):
+        self.p1_pos = self.prog_stack.pop()
+        self.p2_pos = self.prog_stack.pop()
+        self.p3_pos = self.prog_stack.pop()
+
+    def _pop_3_precondition(self):
+        return len(self.prog_stack) >= 3
 
     def _compswap_precondition(self):
         list_length = self.end_pos - self.start_pos + 1
@@ -888,6 +924,7 @@ class QuickSortRecursiveListEnv(Environment):
         self.p1_pos = init_pointers_pos1
         self.p2_pos = init_pointers_pos2
         self.p3_pos = init_pointers_pos3
+        self.prog_stack = []
         self.has_been_reset = True
 
     def get_observation(self):
@@ -940,7 +977,7 @@ class QuickSortRecursiveListEnv(Environment):
 
         """
         assert self.has_been_reset, 'Need to reset the environment before getting states'
-        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos, self.p3_pos, self.start_pos, self.end_pos
+        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos, self.p3_pos, self.start_pos, self.end_pos, self.prog_stack.copy()
 
     def reset_to_state(self, state):
         """
@@ -956,6 +993,7 @@ class QuickSortRecursiveListEnv(Environment):
         self.p3_pos = state[3]
         self.start_pos = state[4]
         self.end_pos = state[5]
+        self.prog_stack = state[6].copy()
 
     def get_state_str(self, state):
         """Print a graphical representation of the environment state"""
@@ -966,8 +1004,9 @@ class QuickSortRecursiveListEnv(Environment):
         start_pos = state[4]
         end_pos = state[5]
         scratchpad = scratchpad[start_pos:end_pos+1]
-        str = 'list: {}, p1 : {}, p2 : {}, p3 : {}, start_pos: {}, end_pos: {}'.format(scratchpad, p1_pos,
-                                                                              p2_pos, p3_pos, start_pos, end_pos)
+        prog_stack = state[6]
+        str = 'list: {}, p1 : {}, p2 : {}, p3 : {}, start_pos: {}, end_pos: {}, prog_stack: {}'.format(scratchpad, p1_pos,
+                                                                              p2_pos, p3_pos, start_pos, end_pos, prog_stack)
         return str
 
     def compare_state(self, state1, state2):
@@ -988,6 +1027,7 @@ class QuickSortRecursiveListEnv(Environment):
         bool &= (state1[3] == state2[3])
         bool &= (state1[4] == state2[4])
         bool &= (state1[5] == state2[5])
+        bool &= (state1[6] == state2[6])
         return bool
 
     def _is_sorted(self):
