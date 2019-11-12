@@ -687,7 +687,7 @@ class QuickSortRecursiveListEnv(Environment):
         return bool
 
     def _compswap_postcondition(self, init_state, state):
-        new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos = init_state
+        new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack = init_state
         new_scratchpad_ints = np.copy(new_scratchpad_ints)
         if new_p1_pos == new_p2_pos and new_p2_pos < new_end_pos:
             new_p2_pos += 1
@@ -695,12 +695,12 @@ class QuickSortRecursiveListEnv(Environment):
         idx_right = max(new_p1_pos, new_p2_pos)
         if new_scratchpad_ints[idx_left] > new_scratchpad_ints[idx_right]:
             new_scratchpad_ints[[idx_left, idx_right]] = new_scratchpad_ints[[idx_right, idx_left]]
-        new_state = (new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos)
+        new_state = (new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack)
         return self.compare_state(state, new_state)
 
     def _lshift_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos = init_state
-        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos = state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos, init_prog_stack = init_state
+        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos, prog_stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
         bool &= init_start_pos == start_pos
         bool &= init_end_pos == end_pos
@@ -722,8 +722,8 @@ class QuickSortRecursiveListEnv(Environment):
         return bool
 
     def _rshift_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos = init_state
-        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos = state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos, init_prog_stack = init_state
+        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos, prog_stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
         bool &= init_start_pos == start_pos
         bool &= init_end_pos == end_pos
@@ -744,8 +744,8 @@ class QuickSortRecursiveListEnv(Environment):
         return bool
 
     def _reset_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos = init_state
-        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos = state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos, prog_stack = init_state
+        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos, prog_stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
         bool &= init_start_pos == start_pos
         bool &= init_end_pos == end_pos
@@ -753,12 +753,13 @@ class QuickSortRecursiveListEnv(Environment):
         return bool
 
     def _quicksort_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos = init_state
-        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos = state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos, init_prog_stack = init_state
+        scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos, prog_stack = state
         bool = init_start_pos == start_pos
         bool &= init_end_pos == end_pos
         # check if list is sorted
         bool &= np.all(scratchpad_ints[:end_pos] <= scratchpad_ints[(start_pos+1):(end_pos+1)])
+        bool &= (len(prog_stack) == 0)
         return bool
 
     def _partition_update_function(self, arr, low, high, j):
@@ -777,23 +778,23 @@ class QuickSortRecursiveListEnv(Environment):
             return arr, low, high, j;
 
     def _partition_update_postcondition(self, init_state, state):
-        new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos = init_state
+        new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack = init_state
         new_scratchpad_ints = np.copy(new_scratchpad_ints)
         new_scratchpad_ints, low, high, j = self._partition_update_function(new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos)
         new_p1_pos = low
         new_p2_pos = high
         new_p3_pos = j
-        new_state = (new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos)
+        new_state = (new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack)
         return self.compare_state(state, new_state)
 
     def _partition_postcondition(self, init_state, state):
-        new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos = init_state
+        new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack = init_state
         new_scratchpad_ints = np.copy(new_scratchpad_ints)
         new_scratchpad_ints, low, high, j = self._partition_function(new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos)
         new_p1_pos = low
         new_p2_pos = high
         new_p3_pos = j
-        new_state = (new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos)
+        new_state = (new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack)
         return self.compare_state(state, new_state)
 
     def _lshift_precondition(self):
@@ -948,11 +949,8 @@ class QuickSortRecursiveListEnv(Environment):
         pt_2_right = int(self.p2_pos == self.end_pos)
         pt_3_right = int(self.p3_pos == self.end_pos)
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)  # one hot encoding of values at pointers pos
-        prog_stack = np.array([])
-        if len(self.prog_stack) > 0:
-            prog_stack = np.zeros((len(self.prog_stack), 10))
-            prog_stack[np.arange(len(self.prog_stack)),self.prog_stack] = 1
-            prog_stack = prog_stack.reshape(-1)
+        prog_stack = np.array([hash(np.array(self.prog_stack).data.tobytes())])
+        #TODO: fix this and the get_observaion_dim method below.
         bools = np.array([
             pt_1_left,
             pt_1_right,
@@ -964,7 +962,7 @@ class QuickSortRecursiveListEnv(Environment):
             pointers3_same_pos,
             is_sorted
         ])
-        return np.concatenate((p1p2p3, bools, prog_stack), axis=0)
+        return np.concatenate((p1p2p3, bools,prog_stack), axis=0)
 
     def get_observation_dim(self):
         """
@@ -972,7 +970,9 @@ class QuickSortRecursiveListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + len(self.prog_stack)*10 + 9
+        return 3 * 10 + 9 + 1
+        # The one is the hash size
+        #return 3 * 10 + len(self.prog_stack)*10 + 9
 
     def get_state(self):
         """Returns the current state.
