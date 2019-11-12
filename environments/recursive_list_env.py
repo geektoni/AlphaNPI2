@@ -950,7 +950,7 @@ class QuickSortRecursiveListEnv(Environment):
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)  # one hot encoding of values at pointers pos
         prog_stack = np.array([])
         if len(self.prog_stack) > 0:
-            prog_stack = np.zeros((len(self.prog_stack), max(self.prog_stack)))
+            prog_stack = np.zeros((len(self.prog_stack), 10))
             prog_stack[np.arange(len(self.prog_stack)),self.prog_stack] = 1
             prog_stack = prog_stack.reshape(-1)
         bools = np.array([
