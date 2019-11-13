@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch.distributions.categorical import Categorical
+from collections import OrderedDict
 
 class CurriculumScheduler():
     """Implements a curriculum sequencer which is used to decide what is the next task to attempt in
@@ -14,9 +15,9 @@ class CurriculumScheduler():
         self.temperature = temperature
 
         self.indices_non_primary_programs = [p['index'] for _,p in self.programs_library.items() if p['level']>0]
-        self.non_primary_programs = dict((p_name, p) for p_name, p in  self.programs_library.items() if p['level']>0)
-        self.relative_indices = dict((prog_idx, relat_idx) for relat_idx, prog_idx in enumerate(self.indices_non_primary_programs))
-        self.relative_indices_inverted = dict((b,a) for a,b in self.relative_indices.items())
+        self.non_primary_programs = OrderedDict((p_name, p) for p_name, p in  self.programs_library.items() if p['level']>0)
+        self.relative_indices = OrderedDict((prog_idx, relat_idx) for relat_idx, prog_idx in enumerate(self.indices_non_primary_programs))
+        self.relative_indices_inverted = OrderedDict((b,a) for a,b in self.relative_indices.items())
 
         self.maximum_level = 1
         self.tasks_average_rewards = np.zeros(num_non_primary_programs)
@@ -66,7 +67,6 @@ class CurriculumScheduler():
         # sample next task
         return self.relative_indices_inverted[int(torch.multinomial(probs, 1)[0])]
 
-
     def print_statistics(self):
         '''
         Print current learning statistics (in terms of rewards).
@@ -95,7 +95,7 @@ class CurriculumScheduler():
         Args:
           task_index: the task that has been attempted
           reward: the reward obtained at the end of the task
-          rewards: 
+          rewards:
 
         """
         # Update task average reward
@@ -114,4 +114,3 @@ class CurriculumScheduler():
         min_reward = np.min(self.tasks_average_rewards[possible_relative_indices])
         if min_reward >= self.reward_threshold:
             self.maximum_level += 1
-

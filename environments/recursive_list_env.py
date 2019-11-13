@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from collections import OrderedDict
+
 from environments.environment import Environment
 
 
@@ -478,30 +480,30 @@ class QuickSortRecursiveListEnv(Environment):
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
 
-        self.programs_library = {'PTR_1_LEFT': {'level': 0, 'recursive': False},
-                                 'STOP': {'level': -1, 'recursive': False},
-                                 'PTR_2_LEFT': {'level': 0, 'recursive': False},
-                                 'PTR_1_RIGHT': {'level': 0, 'recursive': False},
-                                 'PTR_2_RIGHT': {'level': 0, 'recursive': False},
-                                 'PTR_3_LEFT': {'level': 0, 'recursive': False},
-                                 'PTR_3_RIGHT': {'level': 0, 'recursive': False},
-                                 'SWAP': {'level': 0, 'recursive': False},
-                                 'SWAP_2': {'level': 0, 'recursive': False},
-                                 'SWAP_3': {'level': 0, 'recursive': False},
-                                 'PUSH': {'level': 0, 'recursive': False},
-                                 'POP_2': {'level': 0, 'recursive': False},
-                                 'POP_3': {'level': 0, 'recursive': False},
-                                 'RSHIFT': {'level': 1, 'recursive': False},
-                                 'LSHIFT': {'level': 1, 'recursive': False},
-                                 'PARTITION_UPDATE': {'level': 1, 'recursive': False},
-                                 'RESET': {'level': 2, 'recursive': True},
-                                 'PARTITION': {'level': 2, 'recursive': True},
-                                 'QUICKSORT': {'level': 3, 'recursive': True}}
+        self.programs_library = OrderedDict(sorted({'PTR_1_LEFT': OrderedDict({'level': 0, 'recursive': False}),
+                                 'STOP': OrderedDict({'level': -1, 'recursive': False}),
+                                 'PTR_2_LEFT': OrderedDict({'level': 0, 'recursive': False}),
+                                 'PTR_1_RIGHT': OrderedDict({'level': 0, 'recursive': False}),
+                                 'PTR_2_RIGHT': OrderedDict({'level': 0, 'recursive': False}),
+                                 'PTR_3_LEFT': OrderedDict({'level': 0, 'recursive': False}),
+                                 'PTR_3_RIGHT': OrderedDict({'level': 0, 'recursive': False}),
+                                 'SWAP': OrderedDict({'level': 0, 'recursive': False}),
+                                 'SWAP_2': OrderedDict({'level': 0, 'recursive': False}),
+                                 'SWAP_3': OrderedDict({'level': 0, 'recursive': False}),
+                                 'PUSH': OrderedDict({'level': 0, 'recursive': False}),
+                                 'POP_2': OrderedDict({'level': 0, 'recursive': False}),
+                                 'POP_3': OrderedDict({'level': 0, 'recursive': False}),
+                                 'RSHIFT': OrderedDict({'level': 1, 'recursive': False}),
+                                 'LSHIFT': OrderedDict({'level': 1, 'recursive': False}),
+                                 'PARTITION_UPDATE': OrderedDict({'level': 1, 'recursive': False}),
+                                 'RESET': OrderedDict({'level': 2, 'recursive': True}),
+                                 'PARTITION': OrderedDict({'level': 2, 'recursive': True}),
+                                 'QUICKSORT': OrderedDict({'level': 3, 'recursive': True})}.items()))
 
         for i, key in enumerate(sorted(list(self.programs_library.keys()))):
             self.programs_library[key]['index'] = i
 
-        self.prog_to_func = {'STOP': self._stop,
+        self.prog_to_func = OrderedDict(sorted({'STOP': self._stop,
                              'PTR_1_LEFT': self._ptr_1_left,
                              'PTR_2_LEFT': self._ptr_2_left,
                              'PTR_3_LEFT': self._ptr_3_left,
@@ -513,9 +515,9 @@ class QuickSortRecursiveListEnv(Environment):
                              'SWAP_3': self._swap_3,
                              'PUSH': self._push,
                              'POP_2': self._pop_2,
-                             'POP_3': self._pop_3}
+                             'POP_3': self._pop_3}.items()))
 
-        self.prog_to_precondition = {'STOP': self._stop_precondition,
+        self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
                                      'RSHIFT': self._rshift_precondition,
                                      'LSHIFT': self._lshift_precondition,
                                      'RESET': self._reset_precondition,
@@ -533,14 +535,14 @@ class QuickSortRecursiveListEnv(Environment):
                                      'SWAP_3': self._swap_3_precondition,
                                      'PUSH': self._push_precondition,
                                      'POP_2': self._pop_2_precondition,
-                                     'POP_3': self._pop_3_precondition}
+                                     'POP_3': self._pop_3_precondition}.items()))
 
-        self.prog_to_postcondition = {'RSHIFT': self._rshift_postcondition,
+        self.prog_to_postcondition = OrderedDict(sorted({'RSHIFT': self._rshift_postcondition,
                                      'LSHIFT': self._lshift_postcondition,
                                      'RESET': self._reset_postcondition,
                                      'PARTITION': self._partition_postcondition,
                                      'PARTITION_UPDATE': self._partition_update_postcondition,
-                                     'QUICKSORT': self._quicksort_postcondition}
+                                     'QUICKSORT': self._quicksort_postcondition}.items()))
 
         super(QuickSortRecursiveListEnv, self).__init__(self.programs_library, self.prog_to_func,
                                                self.prog_to_precondition, self.prog_to_postcondition)
