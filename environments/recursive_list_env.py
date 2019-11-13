@@ -805,16 +805,17 @@ class QuickSortRecursiveListEnv(Environment):
 
     def _partition_precondition(self):
         partition_index = self.programs_library['PARTITION']['index']
-        if self.current_task_index != partition_index:
-            bool = self.p1_pos < self.p2_pos
-            bool &= self.p3_pos < self.p2_pos
-            bool &= self.p3_pos > self.p1_pos
-            bool &= self.p2_pos == self.end_pos
-        else:
-            bool = self.p1_pos < self.p2_pos
-            bool &= self.p3_pos < self.p2_pos
-            bool &= self.p3_pos > self.p1_pos
-            bool &= self.p2_pos == self.end_pos
+        #if self.current_task_index != partition_index:
+        bool = self.p1_pos < self.p2_pos
+        bool &= self.p3_pos < self.p2_pos
+        bool &= self.p3_pos > self.p1_pos
+        bool &= (self.p1_pos >= self.start_pos and self.p1_pos <= self.end_pos)
+        bool &= (self.p2_pos >= self.start_pos and self.p2_pos <= self.end_pos)
+        bool &= (self.p3_pos >= self.start_pos and self.p3_pos <= self.end_pos)
+        #else:
+        #    bool = self.p1_pos < self.p2_pos
+        #    bool &= self.p3_pos < self.p2_pos
+        #    bool &= self.p3_pos > self.p1_pos
             #bool &= self._decr_length_left_precondition()
         return bool
 
@@ -823,15 +824,16 @@ class QuickSortRecursiveListEnv(Environment):
 
     def _reset_precondition(self):
         bool = (self.p1_pos > self.start_pos or self.p2_pos > self.start_pos or self.p3_pos > self.start_pos)
-        #reset_index = self.programs_library['RESET']['index']
-        #if self.current_task_index == reset_index:
-        #    bool &= self._decr_length_right_precondition()
+        reset_index = self.programs_library['RESET']['index']
+        if self.current_task_index == reset_index:
+            bool &= self._decr_length_right_precondition()
         return bool
 
     def _quicksort_precondition(self):
-        bool = self.p1_pos == self.start_pos
-        bool &= self.p2_pos == self.start_pos
-        bool &= self.p3_pos == self.start_pos
+        bool = (self.p1_pos >= self.start_pos and self.p1_pos <= self.end_pos)
+        bool &= (self.p2_pos >= self.start_pos and self.p2_pos <= self.end_pos)
+        bool &= (self.p3_pos >= self.start_pos and self.p3_pos <= self.end_pos)
+        bool &= (self.p1_pos == self.p3_pos)
         #quicksort_index = self.programs_library['QUICKSORT']['index']
         #if self.current_task_index == quicksort_index:
             #bool &= self._decr_length_right_precondition()
@@ -875,9 +877,13 @@ class QuickSortRecursiveListEnv(Environment):
         self.end_pos = self.length-1
         self.scratchpad_ints = np.random.randint(10, size=self.length)
         current_task_name = self.get_program_from_index(self.current_task_index)
-        if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT' or current_task_name == 'QUICKSORT':
+        if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
+            init_pointers_pos3 = 0
+        elif current_task_name == 'QUICKSORT':
+            init_pointers_pos1 = 0
+            init_pointers_pos2 = self.end_pos
             init_pointers_pos3 = 0
         elif current_task_name == 'RESET':
             while True:
@@ -1050,22 +1056,23 @@ class QuickSortRecursiveListEnv(Environment):
     def start_task(self, task_index):
         if self.tasks_list.count(task_index) > 0:
             task = self.get_program_from_index(task_index)
-            if task == 'RESET' or task == 'QUICKSORT':
+            if task == 'RESET':
+                self._decr_length_right()
+            if task == 'QUICKSORT':
                 pass
-                #self._decr_length_right()
             if task == 'PARTITION':
                 pass
-                #self._decr_length_left()
         return super(QuickSortRecursiveListEnv, self).start_task(task_index)
 
     def end_task(self):
         current_task = self.get_program_from_index(self.current_task_index)
-        if current_task == 'RESET' or current_task == 'QUICKSORT':
+        if current_task == 'RESET':
             if self.tasks_list.count(self.current_task_index) > 1:
-                pass
-                #self._incr_length_right()
+                self._incr_length_right()
+        if current_task == 'QUICKSORT':
+            pass
         if current_task == 'PARTITION':
-            if self.tasks_list.count(self.current_task_index) > 1:
-                pass
-                #self._incr_length_left()
+            pass
+            #if self.tasks_list.count(self.current_task_index) > 1:
+            #    self._incr_length_left()
         super(QuickSortRecursiveListEnv, self).end_task()
