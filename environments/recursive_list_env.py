@@ -806,23 +806,10 @@ class QuickSortRecursiveListEnv(Environment):
         return self.p1_pos < self.end_pos or self.p2_pos < self.end_pos or self.p3_pos < self.end_pos
 
     def _partition_precondition(self):
-        partition_index = self.programs_library['PARTITION']['index']
-        #if self.current_task_index != partition_index:
-        bool = self.p1_pos < self.p2_pos
-        bool &= self.p3_pos < self.p2_pos
-        bool &= self.p3_pos > self.p1_pos
-        bool &= (self.p1_pos >= self.start_pos and self.p1_pos <= self.end_pos)
-        bool &= (self.p2_pos >= self.start_pos and self.p2_pos <= self.end_pos)
-        bool &= (self.p3_pos >= self.start_pos and self.p3_pos <= self.end_pos)
-        #else:
-        #    bool = self.p1_pos < self.p2_pos
-        #    bool &= self.p3_pos < self.p2_pos
-        #    bool &= self.p3_pos > self.p1_pos
-            #bool &= self._decr_length_left_precondition()
-        return bool
+        return self.p1_pos >= 0 and self.p1_pos <= self.p3_pos and self.p3_pos < self.p2_pos and self.p2_pos <= self.length-1
 
     def _partition_update_precondition(self):
-        return self.p1_pos < self.p2_pos and self.p3_pos >= self.p1_pos
+        return self.p3_pos <= self.p2_pos and self.p3_pos >= self.p1_pos and self.p1_pos <= self.p2_pos
 
     def _reset_precondition(self):
         bool = (self.p1_pos > self.start_pos or self.p2_pos > self.start_pos or self.p3_pos > self.start_pos)
@@ -832,14 +819,7 @@ class QuickSortRecursiveListEnv(Environment):
         return bool
 
     def _quicksort_precondition(self):
-        bool = (self.p1_pos >= self.start_pos and self.p1_pos <= self.end_pos)
-        bool &= (self.p2_pos >= self.start_pos and self.p2_pos <= self.end_pos)
-        bool &= (self.p3_pos >= self.start_pos and self.p3_pos <= self.end_pos)
-        bool &= (self.p1_pos == self.p3_pos)
-        #quicksort_index = self.programs_library['QUICKSORT']['index']
-        #if self.current_task_index == quicksort_index:
-            #bool &= self._decr_length_right_precondition()
-        return bool
+        return self.p1_pos >= 0 and self.p1_pos <= self.p2_pos and self.p2_pos <= self.length-1
 
     def _one_hot_encode(self, digit, basis=10):
         """One hot encode a digit with basis.
