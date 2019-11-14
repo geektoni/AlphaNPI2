@@ -73,7 +73,7 @@ if __name__ == "__main__":
     buffer = PrioritizedReplayBuffer(conf.buffer_max_length, idx_tasks, p1=conf.proba_replay_buffer)
 
     # Prepare mcts params
-    max_depth_dict = {1: 5, 2: 5, 3: 5}
+    max_depth_dict = {1: 5, 2: 10, 3: 10}
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
