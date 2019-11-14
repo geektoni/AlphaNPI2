@@ -77,12 +77,12 @@ if __name__ == "__main__":
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
-                         'use_dirichlet_noise': True}
+                         'use_dirichlet_noise': True, 'max_recursion_depth': 250}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
-                        'gamma': conf.gamma}
+                        'gamma': conf.gamma, 'max_recursion_depth': 250}
 
     # Load curriculum sequencer
     curriculum_scheduler = CurriculumScheduler(conf.reward_threshold, num_non_primary_programs, programs_library,
