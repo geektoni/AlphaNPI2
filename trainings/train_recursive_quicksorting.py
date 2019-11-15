@@ -21,6 +21,7 @@ if __name__ == "__main__":
     parser.add_argument('--save-results', help='save training progress in .txt file', action='store_true')
     parser.add_argument('--num-cpus', help='number of cpus to use', default=8, type=int)
     parser.add_argument('--load-model', help='Load a pretrained model and train from there', default="", type=str)
+    parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=0, type=int)
     args = parser.parse_args()
 
     # Get arguments
@@ -34,6 +35,10 @@ if __name__ == "__main__":
     load_model = False
     if args.load_model != "":
         load_model = True
+
+    custom_start_level = False
+    if args.start_level != 0:
+            custom_start_level = True
 
     # Set number of cpus used
     torch.set_num_threads(num_cpus)
@@ -96,6 +101,10 @@ if __name__ == "__main__":
     # Load curriculum sequencer
     curriculum_scheduler = CurriculumScheduler(conf.reward_threshold, num_non_primary_programs, programs_library,
                                                moving_average=0.99)
+
+    # Specify a custom start level
+    if custom_start_level:
+        curriculum_scheduler.maximum_level = args.start_level
 
     # Instanciate trainer
     trainer = Trainer(env_tmp, policy, buffer, curriculum_scheduler, mcts_train_params,
