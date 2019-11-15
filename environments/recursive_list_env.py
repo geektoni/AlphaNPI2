@@ -808,7 +808,7 @@ class QuickSortRecursiveListEnv(Environment):
         return self.p1_pos < self.end_pos or self.p2_pos < self.end_pos or self.p3_pos < self.end_pos
 
     def _partition_precondition(self):
-        return self.p1_pos >= 0 and self.p1_pos <= self.p3_pos and self.p3_pos < self.p2_pos and self.p2_pos <= self.length-1
+        return self.p1_pos >= 0 and self.p1_pos <= self.p3_pos and self.p3_pos <= self.p2_pos+1 and self.p2_pos <= self.length-1
 
     def _partition_update_precondition(self):
         return self.p3_pos <= self.p2_pos and self.p3_pos >= self.p1_pos and self.p1_pos <= self.p2_pos
