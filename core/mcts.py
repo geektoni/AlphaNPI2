@@ -64,7 +64,8 @@ class MCTS:
         self.sub_tree_params = {'number_of_simulations': 5, 'max_depth_dict': self.max_depth_dict,
             'temperature': self.temperature, 'c_puct': self.c_puct, 'exploit': True,
             'level_closeness_coeff': self.level_closeness_coeff, 'gamma': self.gamma,
-            'save_sub_trees': self.save_sub_trees, 'recursion_depth': recursion_depth+1}
+            'save_sub_trees': self.save_sub_trees, 'recursion_depth': recursion_depth+1,
+            'max_recursion_depth': self.max_recursion_depth}
 
 
     def _expand_node(self, node):
