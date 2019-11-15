@@ -514,8 +514,7 @@ class QuickSortRecursiveListEnv(Environment):
                              'SWAP_2': self._swap_2,
                              'SWAP_3': self._swap_3,
                              'PUSH': self._push,
-                             'POP_2': self._pop_2,
-                             'POP_3': self._pop_3}.items()))
+                             'POP': self._pop}.items()))
 
         self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
                                      'RSHIFT': self._rshift_precondition,
@@ -534,8 +533,7 @@ class QuickSortRecursiveListEnv(Environment):
                                      'SWAP_2': self._swap_2_precondition,
                                      'SWAP_3': self._swap_3_precondition,
                                      'PUSH': self._push_precondition,
-                                     'POP_2': self._pop_2_precondition,
-                                     'POP_3': self._pop_3_precondition}.items()))
+                                     'POP': self._pop_precondition}.items()))
 
         self.prog_to_postcondition = OrderedDict(sorted({'RSHIFT': self._rshift_postcondition,
                                      'LSHIFT': self._lshift_postcondition,
@@ -662,23 +660,17 @@ class QuickSortRecursiveListEnv(Environment):
         self.prog_stack.append(self.p3_pos)
         self.prog_stack.append(self.p1_pos)
         self.prog_stack.append(self.p3_pos)
+        self.prog_stack.append(self.p1_pos)
 
     def _push_precondition(self):
         return True
 
-    def _pop_2(self):
-        self.p2_pos = self.prog_stack.pop()
-        self.p3_pos = self.prog_stack.pop()
-
-    def _pop_2_precondition(self):
-        return len(self.prog_stack) >= 2
-
-    def _pop_3(self):
+    def _pop(self):
         self.p1_pos = self.prog_stack.pop()
         self.p2_pos = self.prog_stack.pop()
         self.p3_pos = self.prog_stack.pop()
 
-    def _pop_3_precondition(self):
+    def _pop_precondition(self):
         return len(self.prog_stack) >= 3
 
     def _compswap_precondition(self):
@@ -757,8 +749,6 @@ class QuickSortRecursiveListEnv(Environment):
     def _quicksort_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos, init_prog_stack = init_state
         scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos, prog_stack = state
-        bool = init_start_pos == start_pos
-        bool &= init_end_pos == end_pos
         # check if list is sorted
         bool &= np.all(scratchpad_ints[:end_pos] <= scratchpad_ints[(start_pos+1):(end_pos+1)])
         bool &= (len(prog_stack) == 0)
@@ -779,20 +769,32 @@ class QuickSortRecursiveListEnv(Environment):
             arr[[low, high]] = arr[[high, low]]
             return arr, low, high, j;
 
+    def _quicksort(arr, low, high, pivot):
+        if low < high:
+            arr, l, h, j = self._partition_function(arr, low, high, pivot)
+            # PUSH(p3, p2, p3, p1, p3, p1)
+            # POP(p1, p3, p1)
+            # RSHIFT(p2)
+            arr = self.quicksort(arr, low, l-1, low)
+            # POP(p3, p2, p3)
+            return self.quicksort(arr, l+1, high, l+1)
+        return arr
+
     def _partition_update_postcondition(self, init_state, state):
+        # Generate the output it should have
         new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack = init_state
-        new_scratchpad_ints = np.copy(new_scratchpad_ints)
-        new_scratchpad_ints, low, high, j = self._partition_update_function(new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos)
+        new_scratchpad_ints, low, high, j = self._partition_update_function(np.copy(new_scratchpad_ints), new_p1_pos, new_p2_pos, new_p3_pos)
         new_p1_pos = low
         new_p2_pos = high
         new_p3_pos = j
+
+        # We create a new state and then we compare
         new_state = (new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack)
         return self.compare_state(state, new_state)
 
     def _partition_postcondition(self, init_state, state):
         new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos, new_start_pos, new_end_pos, new_prog_stack = init_state
-        new_scratchpad_ints = np.copy(new_scratchpad_ints)
-        new_scratchpad_ints, low, high, j = self._partition_function(new_scratchpad_ints, new_p1_pos, new_p2_pos, new_p3_pos)
+        new_scratchpad_ints, low, high, j = self._partition_function(np.copy(new_scratchpad_ints), new_p1_pos, new_p2_pos, new_p3_pos)
         new_p1_pos = low
         new_p2_pos = high
         new_p3_pos = j
