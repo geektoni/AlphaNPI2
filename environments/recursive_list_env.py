@@ -740,9 +740,9 @@ class QuickSortRecursiveListEnv(Environment):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_start_pos, init_end_pos, prog_stack = init_state
         scratchpad_ints, p1_pos, p2_pos, p3_pos, start_pos, end_pos, prog_stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
-        bool &= init_start_pos == start_pos
-        bool &= init_end_pos == end_pos
-        bool &= (p1_pos == start_pos and p2_pos == start_pos and p3_pos == start_pos)
+        #bool &= init_start_pos == start_pos
+        #bool &= init_end_pos == end_pos
+        bool &= (p1_pos == init_start_pos and p2_pos == init_start_pos and p3_pos == init_start_pos)
         return bool
 
     def _quicksort_postcondition(self, init_state, state):
@@ -930,6 +930,7 @@ class QuickSortRecursiveListEnv(Environment):
         p3_val = self.scratchpad_ints[self.p3_pos]
         is_sorted = int(self._is_sorted())
         pointers_same_pos = int(self.p1_pos == self.p2_pos)
+        pointers2_same_pos = int(self.p2_pos == self.p3_pos)
         pointers3_same_pos = int(self.p1_pos == self.p3_pos)
         pt_1_left = int(self.p1_pos == self.start_pos)
         pt_2_left = int(self.p2_pos == self.start_pos)
@@ -948,6 +949,7 @@ class QuickSortRecursiveListEnv(Environment):
             pt_3_left,
             pt_3_right,
             pointers_same_pos,
+            pointers2_same_pos,
             pointers3_same_pos,
             is_sorted,
             is_stack_empty
@@ -960,7 +962,7 @@ class QuickSortRecursiveListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + 10
+        return 3 * 10 + 11
         #return 3 * 10 + len(self.prog_stack)*10 + 9
 
     def get_state(self):
