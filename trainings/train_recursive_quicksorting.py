@@ -22,7 +22,11 @@ if __name__ == "__main__":
     parser.add_argument('--num-cpus', help='number of cpus to use', default=8, type=int)
     parser.add_argument('--load-model', help='Load a pretrained model and train from there', default="", type=str)
     parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=0, type=int)
+    parser.add_argument('--max-recursion-depth', help='Specify the maximum depth of the recursion tree', default=150, type=int)
     args = parser.parse_args()
+
+    if args.verbose:
+        print(args)
 
     # Get arguments
     seed = args.seed
@@ -31,6 +35,7 @@ if __name__ == "__main__":
     save_model = args.save_model
     save_results = args.save_results
     num_cpus = args.num_cpus
+    max_recursion_depth = args.max_recursion_depth
 
     load_model = False
     if args.load_model != "":
@@ -87,16 +92,16 @@ if __name__ == "__main__":
     buffer = PrioritizedReplayBuffer(conf.buffer_max_length, idx_tasks, p1=conf.proba_replay_buffer)
 
     # Prepare mcts params
-    max_depth_dict = {1: 5, 2: 10, 3: 10}
+    max_depth_dict = {1: 5, 2: 10, 3: 15}
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
-                         'use_dirichlet_noise': True, 'max_recursion_depth': 250}
+                         'use_dirichlet_noise': True, 'max_recursion_depth': max_recursion_depth}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
-                        'gamma': conf.gamma, 'max_recursion_depth': 250}
+                        'gamma': conf.gamma, 'max_recursion_depth': max_recursion_depth}
 
     # Load curriculum sequencer
     curriculum_scheduler = CurriculumScheduler(conf.reward_threshold, num_non_primary_programs, programs_library,

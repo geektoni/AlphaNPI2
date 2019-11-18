@@ -724,6 +724,7 @@ class QuickSortRecursiveListEnv(Environment):
             bool &= p1_pos == (init_p1_pos+1)
         else:
             bool &= p1_pos == init_p1_pos
+
         if init_p2_pos < init_end_pos:
             bool &= p2_pos == (init_p2_pos+1)
         else:
