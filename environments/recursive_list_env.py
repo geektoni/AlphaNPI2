@@ -480,7 +480,7 @@ class QuickSortRecursiveListEnv(Environment):
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
 
-        self.programs_library = OrderedDict(sorted(
+        self.programs_library = OrderedDict(sorted({
                                  'STOP': OrderedDict({'level': -1, 'recursive': False}),
                                  'PTR_1_LEFT': OrderedDict({'level': 0, 'recursive': False}),
                                  'PTR_2_LEFT': OrderedDict({'level': 0, 'recursive': False}),
