@@ -84,9 +84,9 @@ class QuickSortListEnv(Environment):
                                                             'RSHIFT': self._rshift_precondition,
                                                             'LSHIFT': self._lshift_precondition,
                                                             'RESET': self._reset_precondition,
-                                                            'PARTITION_UPDATE': self._partition_update,
+                                                            'PARTITION_UPDATE': self._partition_update_precondition,
                                                             'PARTITION': self._partition_precondition,
-                                                            'QUICKSORT_UPDATE': self._quicksort_update,
+                                                            'QUICKSORT_UPDATE': self._quicksort_update_precondition,
                                                             'QUICKSORT': self._quicksort_precondition,
                                                             'PTR_1_LEFT': self._ptr_1_left_precondition,
                                                             'PTR_2_LEFT': self._ptr_2_left_precondition,
@@ -217,6 +217,18 @@ class QuickSortListEnv(Environment):
 
     def _rshift_precondition(self):
         return self.p1_pos < self.length - 1 or self.p2_pos < self.length - 1
+
+    def _partition_update_precondition(self):
+        return self.p3_pos < self.p2_pos and self.p1_pos < self.p2_pos
+
+    def _partition_precondition(self):
+        return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos
+
+    def _quicksort_update_precondition(self):
+        return len(self.prog_task) >= 3
+
+    def _quicksort_precondition(self):
+        return len(self.prog_task) == 0 and self.p1_pos == 0 and self.p2_pos == self.length-1 and self.p3_pos == 0
 
     def _bubble_precondition(self):
         bool = self.p1_pos == 0
