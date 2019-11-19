@@ -1,4 +1,4 @@
-from environments.list_env import ListEnv, ListEnvEncoder
+from environments.quicksort_list_env import ListEnvEncoder, QuickSortListEnv
 from core.curriculum import CurriculumScheduler
 from core.policy import Policy
 import core.config as conf
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
 
     # Load environment constants
-    env_tmp = ListEnv(length=5, encoding_dim=conf.encoding_dim)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     # Prepare mcts params
     length = 5
-    max_depth_dict = {1: 5, 2: 2 * length + 3, 3: 2 * length + 3}
+    max_depth_dict = {1: length, 2: length*2,  3: length*4, 4: length**2}
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
@@ -105,8 +105,8 @@ if __name__ == "__main__":
         task_index = curriculum_scheduler.get_next_task_index()
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
-        env = ListEnv(length=length, encoding_dim=conf.encoding_dim)
-        max_depth_dict = {1: 5, 2: 2 * length + 3, 3: 2 * length + 3}
+        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
+        max_depth_dict = {1: 5, 2: 5*2,  3: 5*4, 4: 5**2}
         trainer.env = env
         trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
         trainer.mcts_test_params['max_depth_dict'] = max_depth_dict
@@ -118,8 +118,8 @@ if __name__ == "__main__":
         for idx in curriculum_scheduler.get_tasks_of_maximum_level():
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
-            env = ListEnv(length=length, encoding_dim=conf.encoding_dim)
-            max_depth_dict = {1: 5, 2: 2 * length + 3, 3: 2 * length + 3}
+            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
+            max_depth_dict = {1: 5, 2: 5*2,  3: 5*4, 4: 5**2}
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
             trainer.mcts_test_params['max_depth_dict'] = max_depth_dict

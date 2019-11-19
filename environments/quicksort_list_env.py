@@ -64,9 +64,9 @@ class QuickSortListEnv(Environment):
                                                         'POP': {'level': 0, 'recursive': False},
                                                         'RSHIFT': {'level': 1, 'recursive': False},
                                                         'LSHIFT': {'level': 1, 'recursive': False},
-                                                        'RESET': {'level': 2, 'recursive': False},
-                                                        'PARTITION_UPDATE': {'level': 2, 'recursive': False},
+                                                        'PARTITION_UPDATE': {'level': 1, 'recursive': False},
                                                         'PARTITION': {'level': 2, 'recursive': False},
+                                                        'RESET': {'level': 2, 'recursive': False},
                                                         'QUICKSORT_UPDATE': {'level': 3, 'recursive': False},
                                                         'QUICKSORT': {'level': 4, 'recursive': False}}.items()))
             for idx, key in enumerate(sorted(list(self.programs_library.keys()))):
