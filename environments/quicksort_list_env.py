@@ -407,6 +407,7 @@ class QuickSortListEnv(Environment):
         if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
+            init_pointers_pos3 = 0
         elif current_task_name == 'PARTITION_UPDATE' or current_task_name == 'PARTITION':
             while True:
                 init_pointers_pos2 = int(np.random.randint(0, self.length))
@@ -455,6 +456,7 @@ class QuickSortListEnv(Environment):
         elif current_task_name == 'COMPSWAP':
             init_pointers_pos1 = int(np.random.randint(0, self.length - 1))
             init_pointers_pos2 = int(np.random.choice([init_pointers_pos1, init_pointers_pos1 + 1]))
+            init_pointers_pos3 = 0
         else:
             raise NotImplementedError('Unable to reset env for this program...')
 
@@ -472,7 +474,7 @@ class QuickSortListEnv(Environment):
 
         """
         assert self.has_been_reset, 'Need to reset the environment before getting states'
-        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos, self.p3_pos, self.prog_task.copy()
+        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos, self.p3_pos, self.prog_stack.copy()
 
     def get_observation(self):
         """Returns an observation of the current state.
@@ -484,22 +486,33 @@ class QuickSortListEnv(Environment):
 
         p1_val = self.scratchpad_ints[self.p1_pos]
         p2_val = self.scratchpad_ints[self.p2_pos]
+        p3_val = self.scratchpad_ints[self.p3_pos]
         is_sorted = int(self._is_sorted())
+        is_stack_full = int(len(self.prog_stack) >= 3)
         pointers_same_pos = int(self.p1_pos == self.p2_pos)
+        pointers_same_pos_2 = int(self.p2_pos == self.p3_pos)
+        pointers_same_pos_3 = int(self.p3_pos == self.p1_pos)
         pt_1_left = int(self.p1_pos == 0)
         pt_2_left = int(self.p2_pos == 0)
+        pt_3_left = int(self.p3_pos == 0)
         pt_1_right = int(self.p1_pos == (self.length - 1))
         pt_2_right = int(self.p2_pos == (self.length - 1))
-        p1p2 = np.eye(10)[[p1_val, p2_val]].reshape(-1)
+        pt_3_right = int(self.p3_pos == (self.length - 1))
+        p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)
         bools = np.array([
             pt_1_left,
             pt_1_right,
             pt_2_left,
             pt_2_right,
+            pt_3_left,
+            pt_3_right,
             pointers_same_pos,
-            is_sorted
+            pointers_same_pos_2,
+            pointers_same_pos_3,
+            is_sorted,
+            is_stack_full
         ])
-        return np.concatenate((p1p2, bools), axis=0)
+        return np.concatenate((p1p2p3, bools), axis=0)
 
     def get_observation_dim(self):
         """
@@ -507,7 +520,7 @@ class QuickSortListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 2 * 10 + 6
+        return 3 * 10 + 11
 
     def reset_to_state(self, state):
         """
@@ -520,6 +533,8 @@ class QuickSortListEnv(Environment):
         self.scratchpad_ints = state[0].copy()
         self.p1_pos = state[1]
         self.p2_pos = state[2]
+        self.p3_pos = state[3]
+        self.prog_stack = state[4].copy()
 
     def _is_sorted(self):
         """Assert is the list is sorted or not.
@@ -538,7 +553,9 @@ class QuickSortListEnv(Environment):
         scratchpad = state[0].copy()  # check
         p1_pos = state[1]
         p2_pos = state[2]
-        str = 'list: {}, p1 : {}, p2 : {}'.format(scratchpad, p1_pos, p2_pos)
+        p3_pos = state[3]
+        stack = state[4]
+        str = 'list: {}, p1 : {}, p2 : {}, p3 : {}, stack: {}'.format(scratchpad, p1_pos, p2_pos, p3_pos, stack)
         return str
 
     def compare_state(self, state1, state2):
@@ -557,4 +574,6 @@ class QuickSortListEnv(Environment):
         bool &= np.array_equal(state1[0], state2[0])
         bool &= (state1[1] == state2[1])
         bool &= (state1[2] == state2[2])
+        bool &= (state1[3] == state2[3])
+        bool &= (state1[4] == state2[4])
         return bool
