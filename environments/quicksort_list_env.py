@@ -46,7 +46,7 @@ class QuickSortListEnv(Environment):
         self.p1_pos = 0
         self.p2_pos = 0
         self.p3_pos = 0
-        self.prog_task = []
+        self.prog_stack = []
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
 
@@ -225,10 +225,10 @@ class QuickSortListEnv(Environment):
         return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos
 
     def _quicksort_update_precondition(self):
-        return len(self.prog_task) >= 3
+        return len(self.prog_stack) >= 3
 
     def _quicksort_precondition(self):
-        return len(self.prog_task) == 0 and self.p1_pos == 0 and self.p2_pos == self.length-1 and self.p3_pos == 0
+        return len(self.prog_stack) == 0 and self.p1_pos == 0 and self.p2_pos == self.length-1 and self.p3_pos == 0
 
     def _bubble_precondition(self):
         bool = self.p1_pos == 0
@@ -296,6 +296,7 @@ class QuickSortListEnv(Environment):
         if (init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]):
             init_scratchpad_ints[init_p3_pos, init_p1_pos] = init_scratchpad_ints[init_p1_pos, init_p3_pos]
             init_p1_pos += 1
+        init_p3_pos += 1
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy())
         return self.compare_state(new_state, state)
 
@@ -402,26 +403,54 @@ class QuickSortListEnv(Environment):
         """
         self.scratchpad_ints = np.random.randint(10, size=self.length)
         current_task_name = self.get_program_from_index(self.current_task_index)
+        init_prog_stack = np.random.random_integers(0, self.length-1, 3)
         if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
+        elif current_task_name == 'PARTITION_UPDATE' or current_task_name == 'PARTITION':
+            while True:
+                init_pointers_pos2 = int(np.random.randint(0, self.length))
+                if not init_pointers_pos2 == 0:
+                    break
+            init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
+            init_pointers_pos3 = int(np.random.randint(0, init_pointers_pos2))
+            init_prog_stack = [1,2,1]
+        elif current_task_name == 'QUICKSORT_UPDATE':
+            init_prog_stack = []
+            while True:
+                init_pointers_pos2 = int(np.random.randint(0, self.length))
+                if not init_pointers_pos2 == 1 and not init_pointers_pos2 == 0:
+                    break
+            init_pointers_pos1 = int(np.random.randint(1, init_pointers_pos2))
+            init_pointers_pos3 = init_pointers_pos1
+            init_prog_stack.append(init_pointers_pos3)
+            init_prog_stack.append(init_pointers_pos2)
+            init_prog_stack.append(init_pointers_pos1)
+        elif current_task_name == 'QUICKSORT':
+            init_pointers_pos1 = 0
+            init_pointers_pos2 = self.length-1
+            init_pointers_pos3 = 0
+            init_prog_stack = []
         elif current_task_name == 'RESET':
             while True:
                 init_pointers_pos1 = int(np.random.randint(0, self.length))
                 init_pointers_pos2 = int(np.random.randint(0, self.length))
-                if not (init_pointers_pos1 == 0 and init_pointers_pos2 == 0):
+                init_pointers_pos3 = int(np.random.randint(0, self.length))
+                if not (init_pointers_pos1 == 0 and init_pointers_pos2 == 0 and init_pointers_pos3 == 0):
                     break
         elif current_task_name == 'LSHIFT':
             while True:
                 init_pointers_pos1 = int(np.random.randint(0, self.length))
                 init_pointers_pos2 = int(np.random.randint(0, self.length))
-                if not (init_pointers_pos1 == 0 and init_pointers_pos2 == 0):
+                init_pointers_pos3 = int(np.random.randint(0, self.length))
+                if not (init_pointers_pos1 == 0 and init_pointers_pos2 == 0 and init_pointers_pos3 == 0):
                     break
         elif current_task_name == 'RSHIFT':
             while True:
                 init_pointers_pos1 = int(np.random.randint(0, self.length))
                 init_pointers_pos2 = int(np.random.randint(0, self.length))
-                if not (init_pointers_pos1 == self.length - 1 and init_pointers_pos2 == self.length - 1):
+                init_pointers_pos3 = int(np.random.randint(0, self.length))
+                if not (init_pointers_pos1 == self.length - 1 and init_pointers_pos2 == self.length - 1 and init_pointers_pos3 == self.length-1):
                     break
         elif current_task_name == 'COMPSWAP':
             init_pointers_pos1 = int(np.random.randint(0, self.length - 1))
@@ -431,6 +460,8 @@ class QuickSortListEnv(Environment):
 
         self.p1_pos = init_pointers_pos1
         self.p2_pos = init_pointers_pos2
+        self.p3_pos = init_pointers_pos3
+        self.prog_stack = init_prog_stack.copy()
         self.has_been_reset = True
 
     def get_state(self):
