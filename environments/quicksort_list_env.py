@@ -285,8 +285,8 @@ class QuickSortListEnv(Environment):
         return self.compare_state(state, new_state)
 
     def _lshift_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos = init_state
-        scratchpad_ints, p1_pos, p2_pos = state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
+        scratchpad_ints, p1_pos, p2_pos, p3_pos, stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
         if init_p1_pos > 0:
             bool &= p1_pos == (init_p1_pos - 1)
@@ -296,11 +296,16 @@ class QuickSortListEnv(Environment):
             bool &= p2_pos == (init_p2_pos - 1)
         else:
             bool &= p2_pos == init_p2_pos
+        if init_p3_pos > 0:
+            bool &= p3_pos == (init_p3_pos - 1)
+        else:
+            bool &= p3_pos == init_p3_pos
+        bool &= (init_stack == stack)
         return bool
 
     def _rshift_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos = init_state
-        scratchpad_ints, p1_pos, p2_pos = state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
+        scratchpad_ints, p1_pos, p2_pos, p3_pos, stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
         if init_p1_pos < self.length - 1:
             bool &= p1_pos == (init_p1_pos + 1)
@@ -310,19 +315,25 @@ class QuickSortListEnv(Environment):
             bool &= p2_pos == (init_p2_pos + 1)
         else:
             bool &= p2_pos == init_p2_pos
+        if init_p3_pos < self.length - 1:
+            bool &= p3_pos == (init_p3_pos + 1)
+        else:
+            bool &= p3_pos == init_p3_pos
+        bool &= (init_stack == stack)
         return bool
 
     def _reset_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos = init_state
-        scratchpad_ints, p1_pos, p2_pos = state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
+        scratchpad_ints, p1_pos, p2_pos, p3_pos, stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
-        bool &= (p1_pos == 0 and p2_pos == 0)
+        bool &= (p1_pos == 0 and p2_pos == 0 and p3_pos==0)
+        bool &= (init_stack == stack)
         return bool
 
     def _partition_update_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
         if (init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]):
-            init_scratchpad_ints[init_p3_pos, init_p1_pos] = init_scratchpad_ints[init_p1_pos, init_p3_pos]
+            init_scratchpad_ints[[init_p3_pos, init_p1_pos]] = init_scratchpad_ints[[init_p1_pos, init_p3_pos]]
             init_p1_pos += 1
         init_p3_pos += 1
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy())
@@ -431,7 +442,10 @@ class QuickSortListEnv(Environment):
         """
         self.scratchpad_ints = np.random.randint(10, size=self.length)
         current_task_name = self.get_program_from_index(self.current_task_index)
-        init_prog_stack = np.random.random_integers(0, self.length-1, 3)
+        if (int(np.random.randint(0,10)%2==0)):
+            init_prog_stack = list(np.random.random_integers(0, self.length-1, 3))
+        else:
+            init_prog_stack = []
         if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
@@ -582,7 +596,7 @@ class QuickSortListEnv(Environment):
         p1_pos = state[1]
         p2_pos = state[2]
         p3_pos = state[3]
-        stack = state[4]
+        stack = state[4].copy()
         str = 'list: {}, p1 : {}, p2 : {}, p3 : {}, stack: {}'.format(scratchpad, p1_pos, p2_pos, p3_pos, stack)
         return str
 
