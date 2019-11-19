@@ -451,30 +451,37 @@ class QuickSortListEnv(Environment):
             init_pointers_pos2 = 0
             init_pointers_pos3 = 0
         elif current_task_name == 'PARTITION_UPDATE' or current_task_name == 'PARTITION':
-            while True:
-                init_pointers_pos2 = int(np.random.randint(0, self.length))
-                if not init_pointers_pos2 == 0:
-                    break
-            init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
-            init_pointers_pos3 = int(np.random.randint(0, init_pointers_pos2))
-            if (self.length > 1):
-                start_value = int(np.random.randint(1, self.length))
-                pivot_value = int(np.random.randint(0, start_value))
-            else:
-                start_value = 1
-                pivot_value = 0
-            init_prog_stack = [pivot_value,start_value,pivot_value]
-        elif current_task_name == 'QUICKSORT_UPDATE':
+
             init_prog_stack = []
-            while True:
-                init_pointers_pos2 = int(np.random.randint(0, self.length))
-                if not init_pointers_pos2 == 1 and not init_pointers_pos2 == 0:
-                    break
-            init_pointers_pos1 = int(np.random.randint(1, init_pointers_pos2))
-            init_pointers_pos3 = init_pointers_pos1
+            init_pointers_pos2 = int(np.random.randint(0, self.length))
+
+            if (init_pointers_pos2 == 0):
+                init_pointers_pos1 = 0
+                init_pointers_pos3 = 0
+            else:
+                init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
+                init_pointers_pos3 = init_pointers_pos1
+
             init_prog_stack.append(init_pointers_pos3)
             init_prog_stack.append(init_pointers_pos2)
             init_prog_stack.append(init_pointers_pos1)
+
+        elif current_task_name == 'QUICKSORT_UPDATE':
+
+            init_prog_stack = []
+
+            init_pointers_pos2 = int(np.random.randint(0, self.length))
+            if (init_pointers_pos2 == 0):
+                init_pointers_pos1 = 0
+                init_pointers_pos3 = 0
+            else:
+                init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
+                init_pointers_pos3 = init_pointers_pos1
+
+            init_prog_stack.append(init_pointers_pos3)
+            init_prog_stack.append(init_pointers_pos2)
+            init_prog_stack.append(init_pointers_pos1)
+
         elif current_task_name == 'QUICKSORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = self.length-1
