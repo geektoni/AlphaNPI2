@@ -347,7 +347,7 @@ class QuickSortListEnv(Environment):
 
         while init_p3_pos < init_p2_pos:
             if init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]:
-                init_scratchpad_ints[init_p3_pos, init_p1_pos] = init_scratchpad_ints[init_p1_pos, init_p3_pos]
+                init_scratchpad_ints[[init_p3_pos, init_p1_pos]] = init_scratchpad_ints[[init_p1_pos, init_p3_pos]]
                 init_p1_pos += 1
             init_p3_pos += 1
 
@@ -369,7 +369,7 @@ class QuickSortListEnv(Environment):
             temp_l = init_p1_pos
             while init_p3_pos < init_p2_pos:
                 if init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]:
-                    init_scratchpad_ints[init_p3_pos, init_p1_pos] = init_scratchpad_ints[init_p1_pos, init_p3_pos]
+                    init_scratchpad_ints[[init_p3_pos, init_p1_pos]] = init_scratchpad_ints[[init_p1_pos, init_p3_pos]]
                     init_p1_pos += 1
                 init_p3_pos += 1
 
