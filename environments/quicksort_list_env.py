@@ -138,6 +138,13 @@ class QuickSortListEnv(Environment):
         super(QuickSortListEnv, self).__init__(self.programs_library, self.prog_to_func,
                                                self.prog_to_precondition, self.prog_to_postcondition)
 
+    def _stop(self):
+        """Do nothing. The stop action does not modify the environment."""
+        pass
+
+    def _stop_precondition(self):
+        return True
+
     def _ptr_1_left(self):
         """Move pointer 1 to the left."""
         if self.p1_pos > 0:
@@ -146,13 +153,6 @@ class QuickSortListEnv(Environment):
     def _ptr_1_left_precondition(self):
         return self.p1_pos > 0
 
-    def _stop(self):
-        """Do nothing. The stop action does not modify the environment."""
-        pass
-
-    def _stop_precondition(self):
-        return True
-
     def _ptr_2_left(self):
         """Move pointer 2 to the left."""
         if self.p2_pos > 0:
@@ -160,6 +160,14 @@ class QuickSortListEnv(Environment):
 
     def _ptr_2_left_precondition(self):
         return self.p2_pos > 0
+
+    def _ptr_3_left(self):
+        """Move pointer 3 to the left."""
+        if self.p3_pos > 0:
+            self.p3_pos -= 1
+
+    def _ptr_3_left_precondition(self):
+        return self.p3_pos > 0
 
     def _ptr_1_right(self):
         """Move pointer 1 to the right."""
@@ -177,12 +185,27 @@ class QuickSortListEnv(Environment):
     def _ptr_2_right_precondition(self):
         return self.p2_pos < self.length - 1
 
+    def _ptr_3_right(self):
+        """Move pointer 3 to the right."""
+        if self.p3_pos < (self.length-1):
+            self.p3_pos += 1
+
+    def _ptr_3_right_precondition(self):
+        return self.p3_pos < self.length - 1
+
     def _swap(self):
         """Swap the elements pointed by pointers 1 and 2."""
         self.scratchpad_ints[[self.p1_pos, self.p2_pos]] = self.scratchpad_ints[[self.p2_pos, self.p1_pos]]
 
     def _swap_precondition(self):
         return self.p1_pos != self.p2_pos
+
+    def _swap_pivot(self):
+        """Swap the elements pointed by pointers 1 and 3"""
+        self.scratchpad_ints[[self.p1_pos, self.p3_pos]] = self.scratchpad_ints[[self.p3_pos, self.p1_pos]]
+
+    def _swap_pivot_precondition(self):
+        return self.p1_pos != self.p3_pos
 
     def _compswap_precondition(self):
         bool = self.p1_pos < self.length - 1
