@@ -60,6 +60,8 @@ class QuickSortListEnv(Environment):
                                                         'PTR_3_RIGHT': {'level': 0, 'recursive': False},
                                                         'SWAP': {'level': 0, 'recursive': False},
                                                         'SWAP_PIVOT': {'level': 0, 'recursive': False},
+                                                        'PUSH': {'level': 0, 'recursive': False},
+                                                        'POP': {'level': 0, 'recursive': False},
                                                         'RSHIFT': {'level': 1, 'recursive': False},
                                                         'LSHIFT': {'level': 1, 'recursive': False},
                                                         'RESET': {'level': 2, 'recursive': False},
@@ -78,7 +80,9 @@ class QuickSortListEnv(Environment):
                                                     'PTR_2_RIGHT': self._ptr_2_right,
                                                     'PTR_3_RIGHT': self._ptr_3_right,
                                                     'SWAP': self._swap,
-                                                    'SWAP_PIVOT': self._swap_pivot}.items()))
+                                                    'SWAP_PIVOT': self._swap_pivot,
+                                                    'PUSH': self._push,
+                                                    'POP': self._pop}.items()))
 
             self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
                                                             'RSHIFT': self._rshift_precondition,
@@ -95,7 +99,9 @@ class QuickSortListEnv(Environment):
                                                             'PTR_2_RIGHT': self._ptr_2_right_precondition,
                                                             'PTR_3_RIGHT': self._ptr_3_right_precondition,
                                                             'SWAP': self._swap_precondition,
-                                                            'SWAP_PIVOT': self._swap_pivot_precondition}.items()))
+                                                            'SWAP_PIVOT': self._swap_pivot_precondition,
+                                                            'PUSH': self._push_precondition,
+                                                            'POP': self._pop_precondition}.items()))
 
             self.prog_to_postcondition = OrderedDict(sorted({'RSHIFT': self._rshift_postcondition,
                                           'LSHIFT': self._lshift_postcondition,
@@ -206,6 +212,28 @@ class QuickSortListEnv(Environment):
 
     def _swap_pivot_precondition(self):
         return self.p1_pos != self.p3_pos
+
+    def _push(self):
+        if (self.p3_pos+1 < self.p2_pos):
+            self.prog_stack.append(self.p2_pos)
+            self.prog_stack.append(self.p3_pos+1)
+            self.prog_stack.append(self.p2_pos)
+        if (self.p3_pos-1 >= 0):
+            self.prog_stack.append(self.p1_pos)
+            self.prog_stack.append(self.p3_pos-1)
+            self.prog_stack.append(self.p1_pos)
+
+    def _push_precondition(self):
+        return True
+
+    def _pop(self):
+        if len(self.prog_stack) >= 3:
+            self.p1_pos = self.prog_stack.pop()
+            self.p2_pos = self.prog_stack.pop()
+            self.p3_pos = self.prog_stack.pop()
+
+    def _pop_precondition(self):
+        return len(self.prog_stack) >=3
 
     def _compswap_precondition(self):
         bool = self.p1_pos < self.length - 1
