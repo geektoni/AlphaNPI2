@@ -457,7 +457,13 @@ class QuickSortListEnv(Environment):
                     break
             init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
             init_pointers_pos3 = int(np.random.randint(0, init_pointers_pos2))
-            init_prog_stack = [1,2,1]
+            if (self.length > 1):
+                start_value = int(np.random.randint(1, self.length))
+                pivot_value = int(np.random.randint(0, start_value))
+            else:
+                start_value = 1
+                pivot_value = 0
+            init_prog_stack = [pivot_value,start_value,pivot_value]
         elif current_task_name == 'QUICKSORT_UPDATE':
             init_prog_stack = []
             while True:
