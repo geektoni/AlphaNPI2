@@ -101,9 +101,9 @@ class QuickSortListEnv(Environment):
                                           'LSHIFT': self._lshift_postcondition,
                                           'RESET': self._reset_postcondition,
                                           'PARTITION_UPDATE': self._partition_update_postcondition,
-                                          'PARTITION': self._bubble_postcondition,
-                                          'QUICKSORT_UPDATE': self._quicksort_update_precondition,
-                                          'QUICKSORT': self._bubblesort_postcondition}.items()))
+                                          'PARTITION': self._partition_postcondition,
+                                          'QUICKSORT_UPDATE': self._quicksort_update_postcondition,
+                                          'QUICKSORT': self._quicksort_postcondition}.items()))
 
         else:
             # In no hierarchy mode, the only non-zero program is Bubblesort
@@ -291,6 +291,66 @@ class QuickSortListEnv(Environment):
         bool &= (p1_pos == 0 and p2_pos == 0)
         return bool
 
+    def _partition_update_postcondition(self, init_state, state):
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
+        if (init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]):
+            init_scratchpad_ints[init_p3_pos, init_p1_pos] = init_scratchpad_ints[init_p1_pos, init_p3_pos]
+            init_p1_pos += 1
+        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy())
+        return self.compare_state(new_state, state)
+
+    def _partition_postcondition(self, init_state, state):
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
+
+        # Execute the partition function
+        temp_l = init_p1_pos
+
+        while init_p3_pos < init_p2_pos:
+            if init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]:
+                init_scratchpad_ints[init_p3_pos, init_p1_pos] = init_scratchpad_ints[init_p1_pos, init_p3_pos]
+                init_p1_pos += 1
+            init_p3_pos += 1
+
+        init_scratchpad_ints[[init_p1_pos, init_p2_pos]] = init_scratchpad_ints[[init_p2_pos, init_p1_pos]]
+
+        new_state = (np.copy(init_scratchpad_ints), temp_l, init_p2_pos, init_p1_pos, init_stack.copy())
+        return self.compare_state(new_state, state)
+
+    def _quicksort_update_postcondition(self, init_state, state):
+
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
+
+        # Execute one round of quicksort
+        init_p1_pos = init_stack.pop()
+        init_p2_pos = init_stack.pop()
+        init_p3_pos = init_stack.pop()
+
+        if (init_p1_pos < init_p2_pos):
+            temp_l = init_p1_pos
+            while init_p3_pos < init_p2_pos:
+                if init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]:
+                    init_scratchpad_ints[init_p3_pos, init_p1_pos] = init_scratchpad_ints[init_p1_pos, init_p3_pos]
+                    init_p1_pos += 1
+                init_p3_pos += 1
+
+            init_scratchpad_ints[[init_p1_pos, init_p2_pos]] = init_scratchpad_ints[[init_p2_pos, init_p1_pos]]
+
+            if (init_p3_pos + 1 < init_p2_pos):
+                init_stack.append(init_p3_pos + 1)
+                init_stack.append(init_p2_pos)
+                init_stack.append(init_p3_pos + 1)
+            if init_p3_pos - 1 > 0:
+                init_stack.append(temp_l)
+                init_stack.append(init_p3_pos - 1)
+                init_stack.append(temp_l)
+
+        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy())
+        return self.compare_state(new_state, state)
+
+    def _quicksort_postcondition(self, init_state, state):
+        scratchpad_ints, _, _, _, _ = state
+        return np.all(scratchpad_ints[:self.length - 1] <= scratchpad_ints[1:self.length])
+
     def _bubblesort_postcondition(self, init_state, state):
         scratchpad_ints, p1_pos, p2_pos = state
         # check if list is sorted
@@ -381,7 +441,7 @@ class QuickSortListEnv(Environment):
 
         """
         assert self.has_been_reset, 'Need to reset the environment before getting states'
-        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos
+        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos, self.p3_pos, self.prog_task.copy()
 
     def get_observation(self):
         """Returns an observation of the current state.
