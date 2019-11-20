@@ -486,7 +486,7 @@ class QuickSortListEnv(Environment):
                 init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
                 init_pointers_pos3 = init_pointers_pos1
 
-            if np.rand.randint(0,2) == 1:
+            if np.random.randint(0,2) == 1:
                 init_prog_stack.append(init_pointers_pos3)
                 init_prog_stack.append(init_pointers_pos2)
                 init_prog_stack.append(init_pointers_pos1)
