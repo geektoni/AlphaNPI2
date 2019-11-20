@@ -47,6 +47,7 @@ class QuickSortListEnv(Environment):
         self.p2_pos = 0
         self.p3_pos = 0
         self.prog_stack = []
+        self.temp_variables = [-1]
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
 
@@ -62,6 +63,8 @@ class QuickSortListEnv(Environment):
                                                         'SWAP_PIVOT': {'level': 0, 'recursive': False},
                                                         'PUSH': {'level': 0, 'recursive': False},
                                                         'POP': {'level': 0, 'recursive': False},
+                                                        'SAVE_PTR_1': {'level': 0, 'recursive': False},
+                                                        'LOAD_PTR_1': {'level': 0, 'recursive': False},
                                                         'RSHIFT': {'level': 1, 'recursive': False},
                                                         'LSHIFT': {'level': 1, 'recursive': False},
                                                         'PARTITION_UPDATE': {'level': 1, 'recursive': False},
@@ -82,7 +85,9 @@ class QuickSortListEnv(Environment):
                                                     'SWAP': self._swap,
                                                     'SWAP_PIVOT': self._swap_pivot,
                                                     'PUSH': self._push,
-                                                    'POP': self._pop}.items()))
+                                                    'POP': self._pop,
+                                                    'SAVE_PTR_1': self._save_ptr_1,
+                                                    'LOAD_PTR_1': self._load_ptr_1}.items()))
 
             self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
                                                             'RSHIFT': self._rshift_precondition,
@@ -101,7 +106,9 @@ class QuickSortListEnv(Environment):
                                                             'SWAP': self._swap_precondition,
                                                             'SWAP_PIVOT': self._swap_pivot_precondition,
                                                             'PUSH': self._push_precondition,
-                                                            'POP': self._pop_precondition}.items()))
+                                                            'POP': self._pop_precondition,
+                                                            'SAVE_PTR_1': self._save_ptr_1_precondition,
+                                                            'LOAD_PTR_1': self._load_ptr_1_precondition}.items()))
 
             self.prog_to_postcondition = OrderedDict(sorted({'RSHIFT': self._rshift_postcondition,
                                           'LSHIFT': self._lshift_postcondition,
@@ -234,6 +241,19 @@ class QuickSortListEnv(Environment):
 
     def _pop_precondition(self):
         return len(self.prog_stack) >=3
+
+    def _save_ptr_1(self):
+        self.temp_variables[0] = self.p1_pos
+
+    def _save_ptr_1_precondition(self):
+        return True
+
+    def _load_ptr_1(self):
+        if self.temp_variables[0] != -1:
+            self.p1_pos = self.temp_variables[0]
+
+    def _load_ptr_1_precondition(self):
+        return self.temp_variables[0] != -1
 
     def _compswap_precondition(self):
         bool = self.p1_pos < self.length - 1
@@ -544,6 +564,7 @@ class QuickSortListEnv(Environment):
         p3_val = self.scratchpad_ints[self.p3_pos]
         is_sorted = int(self._is_sorted())
         is_stack_full = int(len(self.prog_stack) >= 3)
+        is_ptr1_saved = int(self.temp_variables[0] != -1)
         pointers_same_pos = int(self.p1_pos == self.p2_pos)
         pointers_same_pos_2 = int(self.p2_pos == self.p3_pos)
         pointers_same_pos_3 = int(self.p3_pos == self.p1_pos)
@@ -565,7 +586,8 @@ class QuickSortListEnv(Environment):
             pointers_same_pos_2,
             pointers_same_pos_3,
             is_sorted,
-            is_stack_full
+            is_stack_full,
+            is_ptr1_saved
         ])
         return np.concatenate((p1p2p3, bools), axis=0)
 
@@ -575,7 +597,7 @@ class QuickSortListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + 11
+        return 3 * 10 + 12
 
     def reset_to_state(self, state):
         """
