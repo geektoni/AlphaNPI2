@@ -267,7 +267,7 @@ class QuickSortListEnv(Environment):
         return self.p1_pos < self.length - 1 or self.p2_pos < self.length - 1 or self.p3_pos < self.length-1
 
     def _partition_update_precondition(self):
-        return self.p3_pos < self.p2_pos and self.p1_pos < self.p2_pos and self.temp_variables[0] != -1
+        return self.p3_pos < self.p2_pos and self.p1_pos < self.p2_pos and self.p1_pos <= self.p3_pos and self.temp_variables[0] != -1
 
     def _partition_precondition(self):
         return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos and self.temp_variables[0] == self.p1_pos
@@ -474,8 +474,7 @@ class QuickSortListEnv(Environment):
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
             init_pointers_pos3 = 0
-        elif current_task_name == 'PARTITION_UPDATE' or current_task_name == 'PARTITION':
-
+        elif current_task_name == 'PARTITION':
             init_prog_stack = []
             init_pointers_pos2 = int(np.random.randint(0, self.length))
 
@@ -495,8 +494,30 @@ class QuickSortListEnv(Environment):
             # store the value of the pointer 1 initial position (since it will be used
             # later to recover it. If we are doing the PARTITION_UPDATE then we need it
             # to be different from -1.
-            init_temp_variables = [0]
-            if current_task_name == 'PARTITION':
+            init_temp_variables = [init_pointers_pos1]
+
+        elif current_task_name == 'PARTITION_UPDATE':
+
+            init_prog_stack = []
+            init_pointers_pos2 = int(np.random.randint(0, self.length))
+
+            if (init_pointers_pos2 == 0):
+                init_pointers_pos1 = 0
+                init_pointers_pos3 = 0
+            else:
+                init_pointers_pos3 = int(np.random.randint(0, init_pointers_pos2))
+                if (init_pointers_pos3 == 0):
+                    init_pointers_pos1 = 0
+                else:
+                    init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos3))
+
+            if np.random.randint(0, 2) == 1:
+                init_prog_stack.append(init_pointers_pos3)
+                init_prog_stack.append(init_pointers_pos2)
+                init_prog_stack.append(init_pointers_pos1)
+
+            init_temp_variables = [-1]
+            if np.random.randint(0,2) == 1:
                 init_temp_variables = [init_pointers_pos1]
 
         elif current_task_name == 'QUICKSORT_UPDATE':
