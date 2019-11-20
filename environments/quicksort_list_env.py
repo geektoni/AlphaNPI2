@@ -214,11 +214,11 @@ class QuickSortListEnv(Environment):
         return self.p1_pos != self.p3_pos
 
     def _push(self):
-        if (self.p3_pos+1 < self.p2_pos):
+        if self.p3_pos+1 < self.p2_pos:
             self.prog_stack.append(self.p2_pos)
             self.prog_stack.append(self.p3_pos+1)
             self.prog_stack.append(self.p2_pos)
-        if (self.p3_pos-1 >= 0):
+        if self.p3_pos-1 > 0:
             self.prog_stack.append(self.p1_pos)
             self.prog_stack.append(self.p3_pos-1)
             self.prog_stack.append(self.p1_pos)
@@ -241,10 +241,10 @@ class QuickSortListEnv(Environment):
         return bool
 
     def _lshift_precondition(self):
-        return self.p1_pos > 0 or self.p2_pos > 0
+        return self.p1_pos > 0 or self.p2_pos > 0 or self.p3_pos > 0
 
     def _rshift_precondition(self):
-        return self.p1_pos < self.length - 1 or self.p2_pos < self.length - 1
+        return self.p1_pos < self.length - 1 or self.p2_pos < self.length - 1 or self.p3_pos < self.length-1
 
     def _partition_update_precondition(self):
         return self.p3_pos < self.p2_pos and self.p1_pos < self.p2_pos
@@ -326,7 +326,7 @@ class QuickSortListEnv(Environment):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack = init_state
         scratchpad_ints, p1_pos, p2_pos, p3_pos, stack = state
         bool = np.array_equal(init_scratchpad_ints, scratchpad_ints)
-        bool &= (p1_pos == 0 and p2_pos == 0 and p3_pos==0)
+        bool &= (p1_pos == 0 and p2_pos == 0 and p3_pos == 0)
         bool &= (init_stack == stack)
         return bool
 
