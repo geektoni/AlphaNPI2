@@ -482,7 +482,7 @@ class QuickSortListEnv(Environment):
                 init_pointers_pos1 = 0
                 init_pointers_pos3 = 0
             else:
-                init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
+                init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2+1))
                 init_pointers_pos3 = init_pointers_pos1
 
             if np.random.randint(0,2) == 1:
@@ -501,24 +501,22 @@ class QuickSortListEnv(Environment):
             init_prog_stack = []
             init_pointers_pos2 = int(np.random.randint(0, self.length))
 
-            if (init_pointers_pos2 == 0):
+            if init_pointers_pos2 == 0:
                 init_pointers_pos1 = 0
                 init_pointers_pos3 = 0
             else:
-                init_pointers_pos3 = int(np.random.randint(0, init_pointers_pos2))
+                init_pointers_pos3 = int(np.random.randint(0, init_pointers_pos2+1))
                 if (init_pointers_pos3 == 0):
                     init_pointers_pos1 = 0
                 else:
-                    init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos3))
+                    init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos3+1))
 
             if np.random.randint(0, 2) == 1:
                 init_prog_stack.append(init_pointers_pos3)
                 init_prog_stack.append(init_pointers_pos2)
                 init_prog_stack.append(init_pointers_pos1)
 
-            init_temp_variables = [-1]
-            if np.random.randint(0,2) == 1:
-                init_temp_variables = [init_pointers_pos1]
+            init_temp_variables = [init_pointers_pos1]
 
         elif current_task_name == 'QUICKSORT_UPDATE':
 
@@ -530,7 +528,7 @@ class QuickSortListEnv(Environment):
                 init_pointers_pos1 = 0
                 init_pointers_pos3 = 0
             else:
-                init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2))
+                init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos2+1))
                 init_pointers_pos3 = init_pointers_pos1
 
             init_prog_stack.append(init_pointers_pos3)
