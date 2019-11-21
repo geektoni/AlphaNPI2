@@ -498,23 +498,50 @@ class QuickSortListEnv(Environment):
 
         elif current_task_name == 'PARTITION_UPDATE':
 
+            init_pointers_pos1 = 0
+            init_pointers_pos2 = self.length-1
+            init_pointers_pos3 = 0
+
+            init_temp_variables = [-1]
+
             init_prog_stack = []
-            init_pointers_pos2 = int(np.random.randint(0, self.length))
+            init_prog_stack.append(init_pointers_pos1)
+            init_prog_stack.append(init_pointers_pos2)
+            init_prog_stack.append(init_pointers_pos3)
 
-            if init_pointers_pos2 == 0:
-                init_pointers_pos1 = 0
-                init_pointers_pos3 = 0
-            else:
-                init_pointers_pos3 = int(np.random.randint(0, init_pointers_pos2+1))
-                if (init_pointers_pos3 == 0):
-                    init_pointers_pos1 = 0
-                else:
-                    init_pointers_pos1 = int(np.random.randint(0, init_pointers_pos3+1))
+            stop=False
+            while len(init_prog_stack) > 0 and not stop:
+                # Execute one round of quicksort
+                init_p1_pos = init_prog_stack.pop()
+                init_p2_pos = init_prog_stack.pop()
+                init_p3_pos = init_prog_stack.pop()
 
-            if np.random.randint(0, 2) == 1:
-                init_prog_stack.append(init_pointers_pos3)
-                init_prog_stack.append(init_pointers_pos2)
-                init_prog_stack.append(init_pointers_pos1)
+                if init_p1_pos < init_p2_pos:
+
+                    init_temp_variables = [init_pointers_pos1]
+
+                    # PARTITION FUNCTION
+                    while init_p3_pos < init_p2_pos:
+                        if self.scratchpad_ints[init_p3_pos] <= self.scratchpad_ints[init_p2_pos]:
+                            self.scratchpad_ints[[init_p3_pos, init_p1_pos]] = self.scratchpad_ints[
+                                [init_p1_pos, init_p3_pos]]
+                            init_p1_pos += 1
+                        init_p3_pos += 1
+                        if np.random.randint(0, 2) == 1:
+                            stop=True
+                            break
+
+
+                if init_p1_pos + 1 < init_p2_pos and not stop:
+                    init_prog_stack.append(init_p1_pos + 1)
+                    init_prog_stack.append(init_p2_pos)
+                    init_prog_stack.append(init_p1_pos + 1)
+
+                if init_p1_pos - 1 > 0 and not stop:
+                    init_p3_pos = init_temp_variables[0]
+                    init_prog_stack.append(init_p3_pos)
+                    init_prog_stack.append(init_p1_pos - 1)
+                    init_prog_stack.append(init_p3_pos)
 
             init_temp_variables = [init_pointers_pos1]
 
