@@ -20,6 +20,8 @@ if __name__ == "__main__":
     parser.add_argument('--save-model', help='save neural network model', action='store_true')
     parser.add_argument('--save-results', help='save training progress in .txt file', action='store_true')
     parser.add_argument('--num-cpus', help='number of cpus to use', default=8, type=int)
+    parser.add_argument('--load-model', help='Load a pretrained model and train from there', default="", type=str)
+    parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=0, type=int)
     args = parser.parse_args()
 
     # Get arguments
@@ -29,6 +31,14 @@ if __name__ == "__main__":
     save_model = args.save_model
     save_results = args.save_results
     num_cpus = args.num_cpus
+
+    load_model = False
+    if args.load_model != "":
+        load_model = True
+
+    custom_start_level = False
+    if args.start_level != 0:
+        custom_start_level = True
 
     # Set number of cpus used
     torch.set_num_threads(num_cpus)
@@ -69,6 +79,10 @@ if __name__ == "__main__":
     policy = Policy(encoder, conf.hidden_size, num_programs, num_non_primary_programs, conf.program_embedding_dim,
                     conf.encoding_dim, indices_non_primary_programs, conf.learning_rate)
 
+    # Load a pre-trained policy (to speed up testing)
+    if load_model:
+        policy.load_state_dict(torch.load(args.load_model))
+
     # Load replay buffer
     idx_tasks = [prog['index'] for key, prog in env_tmp.programs_library.items() if prog['level'] > 0]
     buffer = PrioritizedReplayBuffer(conf.buffer_max_length, idx_tasks, p1=conf.proba_replay_buffer)
@@ -89,6 +103,10 @@ if __name__ == "__main__":
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
                         'gamma': conf.gamma}
+
+    # Specify a custom start level
+    if custom_start_level:
+        curriculum_scheduler.maximum_level = args.start_level
 
     # Instanciate trainer
     trainer = Trainer(env_tmp, policy, buffer, curriculum_scheduler, mcts_train_params,
