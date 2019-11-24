@@ -20,7 +20,7 @@ temperature = 1.3                           # coefficient to artificially increa
 level_closeness_coeff = 3.0                 # importance given to higher level programs
 
 # Training hyper-params
-num_iterations = 700                        # total number of iterations, one iteration corresponds to one task
+num_iterations = 1000000                    # total number of iterations, one iteration corresponds to one task
 num_episodes_per_task = 20                  # number of episodes played for each new task attempted
 batch_size = 256                            # training batch size
 buffer_max_length = 2000                    # replay buffer max length
