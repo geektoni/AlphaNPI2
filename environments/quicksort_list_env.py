@@ -487,7 +487,6 @@ class QuickSortListEnv(Environment):
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables \
                 = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition_update=True)
-            print(init_prog_stack)
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT_UPDATE':
