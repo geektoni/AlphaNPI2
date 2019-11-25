@@ -357,7 +357,7 @@ class QuickSortListEnv(Environment):
     def _partition_update_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
             = partition_update(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
@@ -366,7 +366,7 @@ class QuickSortListEnv(Environment):
     def _partition_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
             = partition(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars,
                                stop=False)
 
@@ -376,7 +376,7 @@ class QuickSortListEnv(Environment):
     def _quicksort_update_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
             = quicksort_update(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars,
                                stop=False)
 
