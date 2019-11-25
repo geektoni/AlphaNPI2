@@ -42,7 +42,8 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
     while init_pointers_pos3 < init_pointers_pos2 and not stop:
         scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop = \
         partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition_update)
-        init_pointers_pos3 += 1
+        if not stop:
+            init_pointers_pos3 += 1
 
     if not stop:
         scratchpad_ints[[init_pointers_pos1, init_pointers_pos2]] = scratchpad_ints[
