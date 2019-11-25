@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     # Prepare mcts params
     length = 5
-    max_depth_dict = {1: length, 2: length*2,  3: length*4, 4: length**2}
+    max_depth_dict = {1: length, 2: length*3,  3: length**2, 4: length**3}
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
-        max_depth_dict = {1: 5, 2: 5*2,  3: 5*4, 4: 5**2}
+        max_depth_dict = {1: max_length, 2: max_length*3,  3: max_length**2, 4: max_length**3}
         trainer.env = env
         trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
         trainer.mcts_test_params['max_depth_dict'] = max_depth_dict
@@ -137,7 +137,7 @@ if __name__ == "__main__":
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
             env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
-            max_depth_dict = {1: 5, 2: 5*2,  3: 5*4, 4: 5**2}
+            max_depth_dict = {1: length, 2: length*3,  3: length**2, 4: length**3}
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
             trainer.mcts_test_params['max_depth_dict'] = max_depth_dict
