@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 from environments.environment import Environment
-from environments.utils_quicksort import sample_quicksort_indexes
+from environments.utils_quicksort import *
 
 
 class ListEnvEncoder(nn.Module):
@@ -356,57 +356,29 @@ class QuickSortListEnv(Environment):
 
     def _partition_update_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
-        if (init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]):
-            init_scratchpad_ints[[init_p3_pos, init_p1_pos]] = init_scratchpad_ints[[init_p1_pos, init_p3_pos]]
-            init_p1_pos += 1
-        init_p3_pos += 1
+
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+            = partition_update(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop=False)
+
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
 
     def _partition_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        # Execute the partition function
-        while init_p3_pos < init_p2_pos:
-            if init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]:
-                init_scratchpad_ints[[init_p3_pos, init_p1_pos]] = init_scratchpad_ints[[init_p1_pos, init_p3_pos]]
-                init_p1_pos += 1
-            init_p3_pos += 1
-
-        init_scratchpad_ints[[init_p1_pos, init_p2_pos]] = init_scratchpad_ints[[init_p2_pos, init_p1_pos]]
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+            = partition(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars,
+                               stop=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
 
     def _quicksort_update_postcondition(self, init_state, state):
-
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        # Execute one round of quicksort
-        init_p1_pos = init_stack.pop()
-        init_p2_pos = init_stack.pop()
-        init_p3_pos = init_stack.pop()
-
-        init_temp_vars = [init_p1_pos]
-
-        if (init_p1_pos < init_p2_pos):
-            while init_p3_pos < init_p2_pos:
-                if init_scratchpad_ints[init_p3_pos] <= init_scratchpad_ints[init_p2_pos]:
-                    init_scratchpad_ints[[init_p3_pos, init_p1_pos]] = init_scratchpad_ints[[init_p1_pos, init_p3_pos]]
-                    init_p1_pos += 1
-                init_p3_pos += 1
-
-            init_scratchpad_ints[[init_p1_pos, init_p2_pos]] = init_scratchpad_ints[[init_p2_pos, init_p1_pos]]
-
-            if init_p1_pos + 1 < init_p2_pos:
-                init_stack.append(init_p1_pos + 1)
-                init_stack.append(init_p2_pos)
-                init_stack.append(init_p1_pos + 1)
-            if init_p1_pos - 1 > 0:
-                init_p3_pos = init_temp_vars[0]
-                init_stack.append(init_p3_pos)
-                init_stack.append(init_p1_pos - 1)
-                init_stack.append(init_p3_pos)
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+            = quicksort_update(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars,
+                               stop=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
