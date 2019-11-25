@@ -25,11 +25,10 @@ def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
         stop = True
         assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
 
-    if scratchpad_ints[init_pointers_pos3] <= scratchpad_ints[init_pointers_pos2] and not stop:
+    if scratchpad_ints[init_pointers_pos3] < scratchpad_ints[init_pointers_pos2] and not stop:
         scratchpad_ints[[init_pointers_pos3, init_pointers_pos1]] = scratchpad_ints[
             [init_pointers_pos1, init_pointers_pos3]]
         init_pointers_pos1 += 1
-    init_pointers_pos3 += 1
 
     return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop
 
@@ -43,6 +42,7 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
     while init_pointers_pos3 < init_pointers_pos2 and not stop:
         scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop = \
         partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition_update)
+        init_pointers_pos3 += 1
 
     if not stop:
         scratchpad_ints[[init_pointers_pos1, init_pointers_pos2]] = scratchpad_ints[
