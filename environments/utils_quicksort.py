@@ -71,6 +71,8 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
         init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
             partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition, stop_partition_update)
 
+        init_pointers_pos3 = init_temp_variables[0]
+
         if init_pointers_pos1 + 1 < init_pointers_pos2 and not stop:
             init_prog_stack.append(init_pointers_pos1 + 1)
             init_prog_stack.append(init_pointers_pos2)
@@ -78,7 +80,6 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
 
         if init_pointers_pos1 - 1 > 0 and not stop:
             if init_temp_variables[0] < init_pointers_pos1 - 1:
-                init_pointers_pos3 = init_temp_variables[0]
                 init_prog_stack.append(init_pointers_pos3)
                 init_prog_stack.append(init_pointers_pos1 - 1)
                 init_prog_stack.append(init_pointers_pos3)
