@@ -22,6 +22,9 @@ if __name__ == "__main__":
     parser.add_argument('--num-cpus', help='number of cpus to use', default=8, type=int)
     parser.add_argument('--load-model', help='Load a pretrained model and train from there', default="", type=str)
     parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=0, type=int)
+    parser.add_argument('--min-length', help='Minimum size of the list we want to order', default=2, type=int)
+    parser.add_argument('--max-length', help='Max size of the list we want to order', default=7, type=int)
+    parser.add_argument('--validation-length', help='Size of the validation lists we want to order', default=7, type=int)
     args = parser.parse_args()
 
     # Get arguments
@@ -113,9 +116,9 @@ if __name__ == "__main__":
                       mcts_test_params, conf.num_validation_episodes, conf.num_episodes_per_task, conf.batch_size,
                       conf.num_updates_per_episode, verbose)
 
-    min_length = 2
-    max_length = 7
-    validation_length = 7
+    min_length = args.min_length
+    max_length = args.max_length
+    validation_length = args.validation_length
     # Start training
     for iteration in range(conf.num_iterations):
 
