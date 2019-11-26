@@ -39,10 +39,11 @@ class QuickSortListEnv(Environment):
     The episode stops when the list is sorted.
     """
 
-    def __init__(self, length=10, encoding_dim=32, hierarchy=True):
+    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True):
 
         assert length > 0, "length must be a positive integer"
         self.length = length
+        self.max_length = max_length
         self.scratchpad_ints = np.zeros((length,))
         self.p1_pos = 0
         self.p2_pos = 0
@@ -545,6 +546,8 @@ class QuickSortListEnv(Environment):
         pt_2_right = int(self.p2_pos == (self.length - 1))
         pt_3_right = int(self.p3_pos == (self.length - 1))
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)
+        #p1p2p3_pos = np.eye(self.max_length)[[self.p1_pos, self.p2_pos, self.p3_pos]].reshape(-1)
+        p1p2p3_pos = np.array([self.p1_pos, self.p2_pos, self.p3_pos])
         bools = np.array([
             pt_1_left,
             pt_1_right,
@@ -559,7 +562,7 @@ class QuickSortListEnv(Environment):
             is_stack_full,
             is_ptr1_saved
         ])
-        return np.concatenate((p1p2p3, bools), axis=0)
+        return np.concatenate((p1p2p3, p1p2p3_pos, bools), axis=0)
 
     def get_observation_dim(self):
         """
@@ -567,7 +570,7 @@ class QuickSortListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + 12
+        return 3 * 10 + 3 + 12
 
     def reset_to_state(self, state):
         """
