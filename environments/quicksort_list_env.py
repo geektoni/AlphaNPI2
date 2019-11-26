@@ -67,11 +67,11 @@ class QuickSortListEnv(Environment):
                                                         'POP': {'level': 0, 'recursive': False},
                                                         'SAVE_PTR_1': {'level': 0, 'recursive': False},
                                                         'LOAD_PTR_1': {'level': 0, 'recursive': False},
-                                                        'RSHIFT': {'level': 1, 'recursive': False},
-                                                        'LSHIFT': {'level': 1, 'recursive': False},
+                                                        #'RSHIFT': {'level': 1, 'recursive': False},
+                                                        #'LSHIFT': {'level': 1, 'recursive': False},
                                                         'PARTITION_UPDATE': {'level': 1, 'recursive': False},
                                                         'PARTITION': {'level': 2, 'recursive': False},
-                                                        'RESET': {'level': 2, 'recursive': False},
+                                                        #'RESET': {'level': 2, 'recursive': False},
                                                         'QUICKSORT_UPDATE': {'level': 3, 'recursive': False},
                                                         'QUICKSORT': {'level': 4, 'recursive': False}}.items()))
             for idx, key in enumerate(sorted(list(self.programs_library.keys()))):
@@ -92,9 +92,9 @@ class QuickSortListEnv(Environment):
                                                     'LOAD_PTR_1': self._load_ptr_1}.items()))
 
             self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
-                                                            'RSHIFT': self._rshift_precondition,
-                                                            'LSHIFT': self._lshift_precondition,
-                                                            'RESET': self._reset_precondition,
+                                                            #'RSHIFT': self._rshift_precondition,
+                                                            #'LSHIFT': self._lshift_precondition,
+                                                            #'RESET': self._reset_precondition,
                                                             'PARTITION_UPDATE': self._partition_update_precondition,
                                                             'PARTITION': self._partition_precondition,
                                                             'QUICKSORT_UPDATE': self._quicksort_update_precondition,
@@ -112,9 +112,10 @@ class QuickSortListEnv(Environment):
                                                             'SAVE_PTR_1': self._save_ptr_1_precondition,
                                                             'LOAD_PTR_1': self._load_ptr_1_precondition}.items()))
 
-            self.prog_to_postcondition = OrderedDict(sorted({'RSHIFT': self._rshift_postcondition,
-                                          'LSHIFT': self._lshift_postcondition,
-                                          'RESET': self._reset_postcondition,
+            self.prog_to_postcondition = OrderedDict(sorted({
+                                           #'RSHIFT': self._rshift_postcondition,
+                                          #'LSHIFT': self._lshift_postcondition,
+                                          #'RESET': self._reset_postcondition,
                                           'PARTITION_UPDATE': self._partition_update_postcondition,
                                           'PARTITION': self._partition_postcondition,
                                           'QUICKSORT_UPDATE': self._quicksort_update_postcondition,
