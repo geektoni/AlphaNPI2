@@ -79,10 +79,11 @@ def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
 
 def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition=False, stop_partition_update=False):
     """
-    (total of 2*(n-1)+1)
+    (total of 2*(n-1)+2)
     from 0 to n-1:
         PARTITION_UPDATE
         PTR_3_RIGHT
+    SWAP
     STOP
 
     :param scratchpad_ints:
