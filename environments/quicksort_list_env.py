@@ -235,6 +235,8 @@ class QuickSortListEnv(Environment):
                 self.prog_stack.append(self.p3_pos)
 
     def _push_precondition(self):
+        # TODO: this may cause trouble to the final QUICKSORT method. At the beginning, it needs to call PUSH
+        # but the temp_variables will be empty.
         return self.temp_variables[0] != -1
 
     def _pop(self):
@@ -272,7 +274,7 @@ class QuickSortListEnv(Environment):
         return self.p1_pos < self.length - 1 or self.p2_pos < self.length - 1 or self.p3_pos < self.length-1
 
     def _partition_update_precondition(self):
-        return self.p3_pos <= self.p2_pos and self.p1_pos <= self.p2_pos and self.p1_pos <= self.p3_pos and self.temp_variables[0] != -1
+        return self.p3_pos < self.p2_pos and self.p1_pos < self.p2_pos and self.p1_pos <= self.p3_pos and self.temp_variables[0] != -1
 
     def _partition_precondition(self):
         return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos and self.temp_variables[0] == self.p1_pos

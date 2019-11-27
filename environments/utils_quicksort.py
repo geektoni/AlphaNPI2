@@ -1,15 +1,15 @@
 import numpy as np
 
 def assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp):
-    assert init_pointers_pos3 <= init_pointers_pos2 \
-           and init_pointers_pos1 <= init_pointers_pos2 \
+    assert init_pointers_pos3 < init_pointers_pos2 \
+           and init_pointers_pos1 < init_pointers_pos2 \
            and init_pointers_pos1 <= init_pointers_pos3 and temp[0] != -1, "Partition update {}, {}, {}, {}".format(
         init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, temp)
 
 def assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp):
     assert init_pointers_pos3 == init_pointers_pos1 \
-           and init_pointers_pos1 <= init_pointers_pos2 \
-           and init_pointers_pos1 <= init_pointers_pos3 and temp[0] == init_pointers_pos1, "Partition {}, {}, {}, {}".format(
+           and init_pointers_pos1 < init_pointers_pos2 \
+           and temp[0] == init_pointers_pos1, "Partition {}, {}, {}, {}".format(
         init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, temp)
 
 def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables, init_prog_stack, stop):
