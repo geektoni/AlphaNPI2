@@ -155,10 +155,10 @@ class MCTS:
                 parent_prog_lvl = self.env.programs_library[self.env.idx_to_prog[node['program_index']]]['level']
                 action_prog_lvl = self.env.programs_library[self.env.idx_to_prog[child['program_from_parent_index']]]['level']
 
-                if parent_prog_lvl == action_prog_lvl:
-                    # special treatment for calling the same program
+                if parent_prog_lvl == action_prog_lvl or action_prog_lvl == 0:
+                    # special treatment for calling the same program or a level 0 action.
                     action_level_closeness = self.level_closeness_coeff * np.exp(-1)
-                elif action_prog_lvl > -1:
+                elif action_prog_lvl > 0:
                     action_level_closeness = self.level_closeness_coeff * np.exp(-(parent_prog_lvl - action_prog_lvl))
                 else:
                     # special treatment for STOP action
