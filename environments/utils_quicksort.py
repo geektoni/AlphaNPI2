@@ -48,6 +48,23 @@ def assert_quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_p
 
 def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition_update=False):
 
+    """ (3)
+    Representation as sub commands:
+    * SWAP_PIVOT
+    * PTR_1_RIGHT
+    * STOP
+
+    :param scratchpad_ints:
+    :param init_pointers_pos1:
+    :param init_pointers_pos2:
+    :param init_pointers_pos3:
+    :param stack:
+    :param temp:
+    :param stop:
+    :param stop_partition_update:
+    :return:
+    """
+
     if np.random.choice(2, 1, p=[0.7, 0.3])[0] == 1 and stop_partition_update:
         stop = True
         assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
@@ -61,6 +78,24 @@ def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
 
 
 def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition=False, stop_partition_update=False):
+    """
+    (total of 2*(n-1)+1)
+    from 0 to n-1:
+        PARTITION_UPDATE
+        PTR_3_RIGHT
+    STOP
+
+    :param scratchpad_ints:
+    :param init_pointers_pos1:
+    :param init_pointers_pos2:
+    :param init_pointers_pos3:
+    :param stack:
+    :param temp:
+    :param stop:
+    :param stop_partition:
+    :param stop_partition_update:
+    :return:
+    """
 
     if np.random.choice(2, 1, p=[0.5, 0.5])[0] == 1 and stop_partition:
         stop = True
@@ -80,6 +115,27 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
 
 
 def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False):
+
+    """ (6 operations)
+    POP
+    SAVE_PTR1
+    PARTITION
+    LOAD_PTR1
+    PUSH
+    STOP
+
+    :param scratchpad_ints:
+    :param init_pointers_pos1:
+    :param init_pointers_pos2:
+    :param init_pointers_pos3:
+    :param init_prog_stack:
+    :param init_temp_variables:
+    :param stop:
+    :param stop_partition:
+    :param stop_partition_update:
+    :param stop_quicksort_update:
+    :return:
+    """
 
     if np.random.choice(2, 1, p=[1 - (1 / len(scratchpad_ints)), 1 / len(scratchpad_ints)])[0] == 1 and stop_quicksort_update:
         stop = True
@@ -107,6 +163,23 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
     return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
 
 def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False):
+
+    """ (1+n+1)
+    PUSH
+    from 0 to n:
+        QUICKSORT_UPDATE
+    STOP
+
+
+
+    :param scratchpad_ints:
+    :param length:
+    :param sort:
+    :param stop_partition:
+    :param stop_partition_update:
+    :param stop_quicksort_update:
+    :return:
+    """
 
     init_pointers_pos1 = 0
     init_pointers_pos2 = length - 1
