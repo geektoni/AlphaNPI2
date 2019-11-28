@@ -21,10 +21,10 @@ if __name__ == "__main__":
     parser.add_argument('--save-results', help='save training progress in .txt file', action='store_true')
     parser.add_argument('--num-cpus', help='number of cpus to use', default=8, type=int)
     parser.add_argument('--load-model', help='Load a pretrained model and train from there', default="", type=str)
-    parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=0, type=int)
     parser.add_argument('--min-length', help='Minimum size of the list we want to order', default=2, type=int)
     parser.add_argument('--max-length', help='Max size of the list we want to order', default=7, type=int)
     parser.add_argument('--validation-length', help='Size of the validation lists we want to order', default=7, type=int)
+    parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=1, type=int)
     args = parser.parse_args()
 
     # Get arguments
@@ -93,6 +93,7 @@ if __name__ == "__main__":
     # Load curriculum sequencer
     curriculum_scheduler = CurriculumScheduler(conf.reward_threshold, num_non_primary_programs, programs_library,
                                                moving_average=0.99)
+    curriculum_scheduler.maximum_level = args.start_level
 
     # Prepare mcts params
     length = 5
