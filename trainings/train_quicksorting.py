@@ -25,11 +25,13 @@ if __name__ == "__main__":
     parser.add_argument('--max-length', help='Max size of the list we want to order', default=7, type=int)
     parser.add_argument('--validation-length', help='Size of the validation lists we want to order', default=7, type=int)
     parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=1, type=int)
+    parser.add_argument('--tb-base-dir', help='Specify base tensorboard dir', default="runs", type=str)
     args = parser.parse_args()
 
     # Get arguments
     seed = args.seed
     tensorboard = args.tensorboard
+    base_tb_dir = args.tb_base_dir
     verbose = args.verbose
     save_model = args.save_model
     save_results = args.save_results
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     # Path to save results
     results_save_path = '../results/list_npi_{}-{}.txt'.format(date_time, seed)
     # Path to tensorboard
-    tensorboard_path = 'runs/list_npi_{}-{}'.format(date_time, seed)
+    tensorboard_path = '{}/list_npi_{}-{}'.format(base_tb_dir, date_time, seed)
 
     # Instantiate tensorboard writer
     if tensorboard:
