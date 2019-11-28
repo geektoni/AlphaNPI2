@@ -362,7 +362,7 @@ class QuickSortListEnv(Environment):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
-            = partition_update(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop=False)
+            = partition_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), stop=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
@@ -371,7 +371,7 @@ class QuickSortListEnv(Environment):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
-            = partition(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars,
+            = partition(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
                                stop=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
@@ -381,7 +381,7 @@ class QuickSortListEnv(Environment):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
-            = quicksort_update(init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars,
+            = quicksort_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
                                stop=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
