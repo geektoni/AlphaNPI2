@@ -72,8 +72,9 @@ class QuickSortListEnv(Environment):
                                                         'PARTITION_UPDATE': {'level': 1, 'recursive': False},
                                                         'PARTITION': {'level': 2, 'recursive': False},
                                                         #'RESET': {'level': 2, 'recursive': False},
-                                                        'QUICKSORT_UPDATE': {'level': 3, 'recursive': False},
-                                                        'QUICKSORT': {'level': 4, 'recursive': False}}.items()))
+                                                        'SAVE_LOAD_PARTITION': {'level': 3, 'recursive': False},
+                                                        'QUICKSORT_UPDATE': {'level': 4, 'recursive': False},
+                                                        'QUICKSORT': {'level': 5, 'recursive': False}}.items()))
             for idx, key in enumerate(sorted(list(self.programs_library.keys()))):
                 self.programs_library[key]['index'] = idx
 
@@ -97,6 +98,7 @@ class QuickSortListEnv(Environment):
                                                             #'RESET': self._reset_precondition,
                                                             'PARTITION_UPDATE': self._partition_update_precondition,
                                                             'PARTITION': self._partition_precondition,
+                                                            'SAVE_LOAD_PARTITION': self._save_load_partition_precondition,
                                                             'QUICKSORT_UPDATE': self._quicksort_update_precondition,
                                                             'QUICKSORT': self._quicksort_precondition,
                                                             'PTR_1_LEFT': self._ptr_1_left_precondition,
@@ -118,6 +120,7 @@ class QuickSortListEnv(Environment):
                                           #'RESET': self._reset_postcondition,
                                           'PARTITION_UPDATE': self._partition_update_postcondition,
                                           'PARTITION': self._partition_postcondition,
+                                          'SAVE_LOAD_PARTITION': self._save_load_partition_postcondition,
                                           'QUICKSORT_UPDATE': self._quicksort_update_postcondition,
                                           'QUICKSORT': self._quicksort_postcondition}.items()))
 
@@ -277,6 +280,9 @@ class QuickSortListEnv(Environment):
     def _partition_precondition(self):
         return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos and self.temp_variables[0] == self.p1_pos
 
+    def _save_load_partition_precondition(self):
+        return self.p1_pos < self.p2_pos
+
     def _quicksort_update_precondition(self):
         return len(self.prog_stack) >= 3 #HERE we may need to check that the temporary variables were resetted to -1. We would need to add a new method cal RESET_TEMP
 
@@ -377,6 +383,17 @@ class QuickSortListEnv(Environment):
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
 
+    def _save_load_partition_postcondition(self, init_state, state):
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
+
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
+            = save_load_partition(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(),
+                               init_temp_vars.copy(),
+                               stop=False)
+
+        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
+        return self.compare_state(new_state, state)
+
     def _quicksort_update_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
@@ -463,6 +480,12 @@ class QuickSortListEnv(Environment):
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables \
                 = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition_update=True)
+            self.scratchpad_ints = np.copy(temp_scratchpad_ints)
+
+        elif current_task_name == 'SAVE_LOAD_PARTITION':
+            temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
+            init_prog_stack, init_temp_variables \
+                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_save_load_partition=True)
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT_UPDATE':

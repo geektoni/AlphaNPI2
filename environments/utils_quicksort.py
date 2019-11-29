@@ -12,6 +12,9 @@ def assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
            and temp[0] == init_pointers_pos1, "Partition {}, {}, {}, {}".format(
         init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, temp)
 
+def asser_save_load_partition(init_pointers_pos1, init_pointers_pos2):
+    assert init_pointers_pos1 < init_pointers_pos2, "Save Load Partition {}, {}".format(init_pointers_pos1, init_pointers_pos2)
+
 def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables, init_prog_stack, stop):
 
     val = np.random.randint(0,2)
@@ -114,14 +117,50 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
 
     return scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop
 
+def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_save_load_partition=False):
 
-def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False):
-
-    """ (6 operations)
-    POP
+    """ (4 operations)
     SAVE_PTR1
     PARTITION
     LOAD_PTR1
+    STOP
+
+    :param scratchpad_ints:
+    :param init_pointers_pos1:
+    :param init_pointers_pos2:
+    :param init_pointers_pos3:
+    :param init_prog_stack:
+    :param init_temp_variables:
+    :param stop:
+    :param stop_partition:
+    :param stop_partition_update:
+    :param stop_save_load_partition:
+    :return:
+    """
+
+    if np.random.choice(2, 1, p=[0.5, 0.5])[0] == 1 and stop_save_load_partition:
+        stop = True
+
+    if not stop:
+        init_temp_variables = [init_pointers_pos1]
+
+        # Run the partition method
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, \
+        init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
+            partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack,
+                  init_temp_variables, stop, stop_partition, stop_partition_update)
+
+    if not stop:
+        init_pointers_pos3 = init_temp_variables[0]
+        init_temp_variables = [-1]
+
+    return scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop
+
+def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False):
+
+    """ (4 operations)
+    POP
+    SAVE_LOAD_PARTITION
     PUSH
     STOP
 
@@ -148,30 +187,22 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
 
     if init_pointers_pos1 < init_pointers_pos2 and not stop:
 
-        init_temp_variables = [init_pointers_pos1]
-
-        # Run the partition method
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, \
-        init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
-            partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition, stop_partition_update)
-
-        if not stop:
-            init_pointers_pos3 = init_temp_variables[0]
-            init_temp_variables = [-1]
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
+            save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3,
+                            init_prog_stack, init_temp_variables, stop, stop_partition,
+                            stop_partition_update, stop_save_load_partition)
 
         init_prog_stack = random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables.copy(), init_prog_stack.copy(), stop)
 
     return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
 
-def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False):
+def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False):
 
     """ (1+n+1)
     PUSH
     from 0 to n:
         QUICKSORT_UPDATE
     STOP
-
-
 
     :param scratchpad_ints:
     :param length:
@@ -196,7 +227,7 @@ def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition
     stop = False
     while len(init_prog_stack) > 0 and not stop:
         scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
-           quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition, stop_partition_update, stop_quicksort_update)
+           quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition, stop_partition_update, stop_quicksort_update, stop_save_load_partition)
 
     # This means that we reached the end of the sorting without
     # exiting the loop. Therefore, we initialize everything manually.
@@ -230,6 +261,9 @@ if __name__ == "__main__":
         assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
         #print(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
 
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
+            sample_quicksort_indexes(np.copy(arr), 5, stop_save_load_partition=True)
+        asser_save_load_partition(init_pointers_pos1, init_pointers_pos2)
 
         scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
             sample_quicksort_indexes(np.copy(arr), 5, stop_quicksort_update=True)
