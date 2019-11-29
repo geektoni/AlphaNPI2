@@ -281,7 +281,7 @@ class QuickSortListEnv(Environment):
         return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos and self.temp_variables[0] == self.p1_pos
 
     def _save_load_partition_precondition(self):
-        return self.p1_pos < self.p2_pos
+        return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos
 
     def _quicksort_update_precondition(self):
         return len(self.prog_stack) >= 3 #HERE we may need to check that the temporary variables were resetted to -1. We would need to add a new method cal RESET_TEMP
