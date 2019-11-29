@@ -13,7 +13,7 @@ def assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
         init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, temp)
 
 def asser_save_load_partition(init_pointers_pos1, init_pointers_pos2):
-    assert init_pointers_pos1 < init_pointers_pos2, "Save Load Partition {}, {}".format(init_pointers_pos1, init_pointers_pos2)
+    assert init_pointers_pos1 < init_pointers_pos2 and init_pointers_pos1 == init_pointers_pos3, "Save Load Partition {}, {}".format(init_pointers_pos1, init_pointers_pos2)
 
 def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables, init_prog_stack, stop):
 
@@ -192,7 +192,8 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
                             init_prog_stack, init_temp_variables, stop, stop_partition,
                             stop_partition_update, stop_save_load_partition)
 
-        init_prog_stack = random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables.copy(), init_prog_stack.copy(), stop)
+        if not stop:
+            init_prog_stack = random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables.copy(), init_prog_stack.copy(), stop)
 
     return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
 
