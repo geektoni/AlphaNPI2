@@ -231,14 +231,13 @@ class QuickSortListEnv(Environment):
             self.prog_stack.append(self.p1_pos+1)
             self.prog_stack.append(self.p2_pos)
             self.prog_stack.append(self.p1_pos+1)
-        if self.p1_pos-1 > 0:
-            if self.p3_pos < self.p1_pos - 1:
-                self.prog_stack.append(self.p3_pos)
-                self.prog_stack.append(self.p1_pos-1)
-                self.prog_stack.append(self.p3_pos)
+        if self.p1_pos-1 > 0 and self.p3_pos < self.p1_pos - 1:
+            self.prog_stack.append(self.p3_pos)
+            self.prog_stack.append(self.p1_pos-1)
+            self.prog_stack.append(self.p3_pos)
 
     def _push_precondition(self):
-        return self.temp_variables[0] != -1 or self.p1_pos-1 <= 0
+        return self.p1_pos+1 < self.p2_pos or (self.p1_pos-1 > 0 and self.p3_pos < self.p1_pos - 1)
 
     def _pop(self):
         if len(self.prog_stack) >= 3:

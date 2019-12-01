@@ -20,11 +20,10 @@ def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init
     val = np.random.randint(0,2)
 
     if val == 1:
-        if init_pointers_pos1 - 1 > 0 and not stop:
-            if init_temp_variables[0] < init_pointers_pos1 - 1:
-                init_prog_stack.append(init_pointers_pos3)
-                init_prog_stack.append(init_pointers_pos1 - 1)
-                init_prog_stack.append(init_pointers_pos3)
+        if init_pointers_pos1 - 1  > 0 and init_temp_variables[0] < init_pointers_pos1 - 1 and not stop:
+            init_prog_stack.append(init_pointers_pos3)
+            init_prog_stack.append(init_pointers_pos1 - 1)
+            init_prog_stack.append(init_pointers_pos3)
 
         if init_pointers_pos1 + 1 < init_pointers_pos2 and not stop:
             init_prog_stack.append(init_pointers_pos1 + 1)
@@ -37,11 +36,10 @@ def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init
             init_prog_stack.append(init_pointers_pos2)
             init_prog_stack.append(init_pointers_pos1 + 1)
 
-        if init_pointers_pos1 - 1 > 0 and not stop:
-            if init_temp_variables[0] < init_pointers_pos1 - 1:
-                init_prog_stack.append(init_pointers_pos3)
-                init_prog_stack.append(init_pointers_pos1 - 1)
-                init_prog_stack.append(init_pointers_pos3)
+        if init_pointers_pos1 - 1 > 0 and init_temp_variables[0] < init_pointers_pos1 - 1 and not stop:
+            init_prog_stack.append(init_pointers_pos3)
+            init_prog_stack.append(init_pointers_pos1 - 1)
+            init_prog_stack.append(init_pointers_pos3)
 
     return init_prog_stack.copy()
 
