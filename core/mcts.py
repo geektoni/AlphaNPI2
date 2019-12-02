@@ -181,7 +181,7 @@ class MCTS:
                 q_val_action += action_level_closeness
 
                 if self.use_structural_constraint:
-                    structural_penalty_value = - self.return_structural_penalty(child,
+                    structural_penalty_value = self.return_structural_penalty(child,
                                                                  self.env.prog_to_structural_condition[
                                                                      self.env.get_program_from_index(child["program_index"])
                                                                  ]
@@ -469,8 +469,8 @@ class MCTS:
 
         if condition == "WHILE":
             max_depth = self.max_depth_dict[node["program_index"]]
-            max_called = max(node["program_call_count"])
-            penalty = self.structural_penalty_factor * (np.exp(np.abs(max_depth-max_called))-1)
+            total_called = sum(node["program_call_count"])
+            penalty = self.structural_penalty_factor * np.exp(-(max_depth-total_called+1))
         elif condition == "SEQUENTIAL":
             # Since the execution is sequential. We want to penalize
             # calling the same instruction twice.
