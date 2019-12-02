@@ -35,7 +35,7 @@ class MCTS:
                  temperature=1.0, use_dirichlet_noise=False,
                  dir_epsilon=0.25, dir_noise=0.03, exploit=False, gamma=0.97, save_sub_trees=False,
                  recursion_depth=0, max_recursion_depth=500, qvalue_temperature=1.0, recursive_penalty=0.9,
-                 structural_penalty_factor=1):
+                 structural_penalty_factor=1, use_structural_constraint = False):
 
         self.policy = policy
         self.c_puct = c_puct
@@ -58,6 +58,7 @@ class MCTS:
         self.max_recursion_depth = max_recursion_depth
         self.qvalue_temperature = qvalue_temperature
         self.structural_penalty_factor = structural_penalty_factor
+        self.use_structural_constraint = use_structural_constraint
 
         # record if all sub-programs executed correctly (useful only for programs of level > 1)
         self.clean_sub_executions = True
@@ -178,7 +179,8 @@ class MCTS:
 
                 q_val_action += action_level_closeness
 
-                q_val_action += - self.return_structural_penalty(child,
+                if self.use_structural_constraint:
+                    q_val_action += - self.return_structural_penalty(child,
                                                                  self.env.prog_to_structural_condition[
                                                                      self.env.get_program_from_index(child["program_index"])
                                                                  ]

@@ -31,3 +31,6 @@ proba_replay_buffer = 0.5                   # probability of sampling positive r
 # Validation hyper-params
 num_validation_episodes = 25                # number of episodes played for validation
 number_of_simulations_for_validation = 5    # number of simulations used in the tree for validation (when exploit = True)
+
+# Constraints
+structural_constraint = False               # use structural constraint when learning programs

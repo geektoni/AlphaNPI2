@@ -26,6 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('--validation-length', help='Size of the validation lists we want to order', default=7, type=int)
     parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=1, type=int)
     parser.add_argument('--tb-base-dir', help='Specify base tensorboard dir', default="runs", type=str)
+    parser.add_argument('--structural-constraint', help="Use the structural constraint to train", action='store_true')
     args = parser.parse_args()
 
     # Get arguments
@@ -37,6 +38,10 @@ if __name__ == "__main__":
     save_results = args.save_results
     num_cpus = args.num_cpus
 
+    # Verbose output
+    if verbose:
+        print(args)
+
     load_model = False
     if args.load_model != "":
         load_model = True
@@ -44,6 +49,10 @@ if __name__ == "__main__":
     custom_start_level = False
     if args.start_level != 0:
         custom_start_level = True
+
+    # Set if we are using the structural constraint
+    if args.structural_constraint:
+        conf.structural_constraint = True
 
     # Set number of cpus used
     torch.set_num_threads(num_cpus)
@@ -65,7 +74,6 @@ if __name__ == "__main__":
     # Instantiate file writer
     if save_results:
         results_file = open(results_save_path, 'w')
-
 
     # Set random seed
     np.random.seed(seed)
@@ -103,12 +111,12 @@ if __name__ == "__main__":
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
-                         'use_dirichlet_noise': True}
+                         'use_dirichlet_noise': True, 'use_structural_constraint': conf.structural_constraint}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
-                        'gamma': conf.gamma}
+                        'gamma': conf.gamma, 'use_structural_constraint': conf.structural_constraint}
 
     # Specify a custom start level
     if custom_start_level:
