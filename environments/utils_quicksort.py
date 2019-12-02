@@ -45,7 +45,7 @@ def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init
 
 
 def assert_quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp):
-    assert len(stack) >= 3, "Quicksort Update: {}".format(stack)
+    assert len(stack) >= 3 and temp[0] == -1, "Quicksort Update: {}".format(stack)
 
 def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition_update=False):
 
@@ -75,7 +75,7 @@ def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
             [init_pointers_pos1, init_pointers_pos3]]
         init_pointers_pos1 += 1
 
-    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop
+    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy(), stop
 
 
 def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition=False, stop_partition_update=False):
@@ -113,7 +113,7 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
         scratchpad_ints[[init_pointers_pos1, init_pointers_pos2]] = scratchpad_ints[
             [init_pointers_pos2, init_pointers_pos1]]
 
-    return scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop
+    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy(), stop
 
 def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_save_load_partition=False):
 
@@ -152,7 +152,7 @@ def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2,
         init_pointers_pos3 = init_temp_variables[0]
         init_temp_variables = [-1]
 
-    return scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop
+    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
 
 def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False):
 

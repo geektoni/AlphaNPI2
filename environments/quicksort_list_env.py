@@ -283,7 +283,7 @@ class QuickSortListEnv(Environment):
         return self.p1_pos < self.p2_pos and self.p1_pos == self.p3_pos
 
     def _quicksort_update_precondition(self):
-        return len(self.prog_stack) >= 3 #HERE we may need to check that the temporary variables were resetted to -1. We would need to add a new method cal RESET_TEMP
+        return len(self.prog_stack) >= 3 and self.temp_variables[0] == -1
 
     def _quicksort_precondition(self):
         return len(self.prog_stack) == 0 and self.p1_pos == 0 and self.p2_pos == self.length-1 and self.p3_pos == 0
@@ -571,6 +571,8 @@ class QuickSortListEnv(Environment):
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)
         #p1p2p3_pos = np.eye(self.max_length)[[self.p1_pos, self.p2_pos, self.p3_pos]].reshape(-1)
         p1p2p3_pos = np.array([self.p1_pos, self.p2_pos, self.p3_pos])
+        first_stack_pos = np.array([self.prog_stack[1]]) if is_stack_full else np.array([-1])
+        how_many_pointers_saved = np.array([len(self.prog_stack)/3])
         bools = np.array([
             pt_1_left,
             pt_1_right,
@@ -585,7 +587,7 @@ class QuickSortListEnv(Environment):
             is_stack_full,
             is_ptr1_saved
         ])
-        return np.concatenate((p1p2p3, p1p2p3_pos, bools), axis=0)
+        return np.concatenate((p1p2p3, p1p2p3_pos, first_stack_pos, how_many_pointers_saved, bools), axis=0)
 
     def get_observation_dim(self):
         """
@@ -593,7 +595,7 @@ class QuickSortListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + 3 + 12
+        return 3 * 10 + 3 + 2 + 12
 
     def reset_to_state(self, state):
         """
