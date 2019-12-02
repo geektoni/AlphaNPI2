@@ -124,6 +124,13 @@ class QuickSortListEnv(Environment):
                                           'QUICKSORT_UPDATE': self._quicksort_update_postcondition,
                                           'QUICKSORT': self._quicksort_postcondition}.items()))
 
+            self.prog_to_structural_condition = OrderedDict(sorted({
+                                                                'PARTITION_UPDATE': 'SEQUENTIAL',
+                                                                'PARTITION': 'WHILE',
+                                                                'SAVE_LOAD_PARTITION': 'SEQUENTIAL',
+                                                                'QUICKSORT_UPDATE': 'SEQUENTIAL',
+                                                                'QUICKSORT': 'WHILE'}.items()))
+
         else:
             # In no hierarchy mode, the only non-zero program is Bubblesort
 

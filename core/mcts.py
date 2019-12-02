@@ -34,7 +34,8 @@ class MCTS:
                  c_puct=1.0, number_of_simulations=100, max_depth_dict={1: 5, 2: 50, 3: 150},
                  temperature=1.0, use_dirichlet_noise=False,
                  dir_epsilon=0.25, dir_noise=0.03, exploit=False, gamma=0.97, save_sub_trees=False,
-                 recursion_depth=0, max_recursion_depth=500, qvalue_temperature=1.0, recursive_penalty=0.9):
+                 recursion_depth=0, max_recursion_depth=500, qvalue_temperature=1.0, recursive_penalty=0.9,
+                 structural_penalty_factor=1):
 
         self.policy = policy
         self.c_puct = c_puct
@@ -56,6 +57,7 @@ class MCTS:
         self.recursion_depth = recursion_depth
         self.max_recursion_depth = max_recursion_depth
         self.qvalue_temperature = qvalue_temperature
+        self.structural_penalty_factor = structural_penalty_factor
 
         # record if all sub-programs executed correctly (useful only for programs of level > 1)
         self.clean_sub_executions = True
@@ -79,13 +81,14 @@ class MCTS:
           node now expanded, value, hidden_state, cell_state
 
         """
-        program_index, observation, env_state, h, c, depth = (
+        program_index, observation, env_state, h, c, depth, program_call_count = (
             node["program_index"],
             node["observation"],
             node["env_state"],
             node["h_lstm"],
             node["c_lstm"],
-            node["depth"]
+            node["depth"],
+            node["program_call_count"]
         )
 
         with torch.no_grad():
@@ -113,9 +116,18 @@ class MCTS:
                 "h_lstm": new_h.clone(),
                 "c_lstm": new_c.clone(),
                 "selected": False,
-                "depth": depth + 1
+                "depth": depth + 1,
+                "program_call_count": program_call_count.copy()
             }
+
+            # If we are calling again the same program, then we increment
+            # the program counter for that program. This is done to record
+            # eventual while presents in the code.
+            if prog_index == program_index:
+                new_child["program_call_count"][prog_index] +=1
+
             node["childs"].append(new_child)
+
         # This reward will be propagated backwards through the tree
         value = float(value)
         return node, value, new_h.clone(), new_c.clone()
@@ -165,6 +177,14 @@ class MCTS:
                     action_level_closeness = self.level_closeness_coeff * np.exp(-1)
 
                 q_val_action += action_level_closeness
+
+                q_val_action += - self.return_structural_penalty(child,
+                                                                 self.env.prog_to_structural_condition[
+                                                                     self.env.get_program_from_index(child["program_index"])
+                                                                 ]
+                                                                 )
+
+
                 if q_val_action > best_val:
                     best_val = q_val_action
                     best_child = child
@@ -393,7 +413,8 @@ class MCTS:
                 "h_lstm": state_h.clone(),
                 "c_lstm": state_c.clone(),
                 "depth": 0,
-                "selected": True
+                "selected": True,
+                "program_call_count": [0 for _ in range(0, len(self.env.programs_library))]
             }
 
             # prepare empty lists to store trajectory
@@ -431,3 +452,26 @@ class MCTS:
         return self.observations, self.programs_index, self.previous_actions, self.mcts_policies, \
                self.lstm_states, max_depth_reached, self.root_node, task_reward, self.clean_sub_executions, self.rewards, \
                self.programs_failed_indices, self.programs_failed_initstates
+
+    def return_structural_penalty(self, node, condition=None):
+        """
+        Return structural penalty given a MCTS node, the program level and a structural
+        condition (like WHILE, IF, SEQUENTIAL, etc.)
+
+        :param node: the MCTS node we are evaluating
+        :param program_level: the level of the program we are computing
+        :param condition: the structural constraint
+        :return:
+        """
+
+        if condition == "WHILE":
+            max_depth = self.max_depth_dict[node["program_index"]]
+            max_called = max(node["program_call_count"])
+            penalty = self.structural_penalty_factor * np.exp(np.abs(max_depth-max_called))-1
+        elif condition == "SEQUENTIAL":
+            # Since the execution is sequential. We want to penalize
+            # calling the same instruction twice.
+            penalty = self.structural_penalty_factor * sum(node["program_call_count"])
+        else:
+            penalty = 0
+        return penalty
