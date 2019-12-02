@@ -82,14 +82,15 @@ class MCTS:
           node now expanded, value, hidden_state, cell_state
 
         """
-        program_index, observation, env_state, h, c, depth, program_call_count = (
+        program_index, observation, env_state, h, c, depth, program_call_count, previously_called_index = (
             node["program_index"],
             node["observation"],
             node["env_state"],
             node["h_lstm"],
             node["c_lstm"],
             node["depth"],
-            node["program_call_count"]
+            node["program_call_count"],
+            node["program_from_parent_index"]
         )
 
         with torch.no_grad():
@@ -124,7 +125,7 @@ class MCTS:
             # If we are calling again the same program, then we increment
             # the program counter for that program. This is done to record
             # eventual while presents in the code.
-            if prog_index == program_index:
+            if prog_index == previously_called_index:
                 new_child["program_call_count"][prog_index] +=1
 
             node["childs"].append(new_child)
@@ -180,12 +181,12 @@ class MCTS:
                 q_val_action += action_level_closeness
 
                 if self.use_structural_constraint:
-                    q_val_action += - self.return_structural_penalty(child,
+                    structural_penalty_value = - self.return_structural_penalty(child,
                                                                  self.env.prog_to_structural_condition[
                                                                      self.env.get_program_from_index(child["program_index"])
                                                                  ]
                                                                  )
-
+                    q_val_action += structural_penalty_value
 
                 if q_val_action > best_val:
                     best_val = q_val_action
@@ -469,7 +470,7 @@ class MCTS:
         if condition == "WHILE":
             max_depth = self.max_depth_dict[node["program_index"]]
             max_called = max(node["program_call_count"])
-            penalty = self.structural_penalty_factor * np.exp(np.abs(max_depth-max_called))-1
+            penalty = self.structural_penalty_factor * (np.exp(np.abs(max_depth-max_called))-1)
         elif condition == "SEQUENTIAL":
             # Since the execution is sequential. We want to penalize
             # calling the same instruction twice.
