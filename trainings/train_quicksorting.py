@@ -27,6 +27,7 @@ if __name__ == "__main__":
     parser.add_argument('--start-level', help='Specify up to which level we are trying to learn', default=1, type=int)
     parser.add_argument('--tb-base-dir', help='Specify base tensorboard dir', default="runs", type=str)
     parser.add_argument('--structural-constraint', help="Use the structural constraint to train", action='store_true')
+    parser.add_argument('--gamma', help="Specify gamma discount factor", default=0.97, type=float)
     args = parser.parse_args()
 
     # Get arguments
@@ -37,6 +38,7 @@ if __name__ == "__main__":
     save_model = args.save_model
     save_results = args.save_results
     num_cpus = args.num_cpus
+    conf.gamma = args.gamma
 
     # Verbose output
     if verbose:
