@@ -579,7 +579,7 @@ class QuickSortListEnv(Environment):
         #p1p2p3_pos = np.eye(self.max_length)[[self.p1_pos, self.p2_pos, self.p3_pos]].reshape(-1)
         p1p2p3_pos = np.array([self.p1_pos, self.p2_pos, self.p3_pos])
         first_stack_pos = np.array([self.prog_stack[0], self.prog_stack[1]]) if is_stack_full else np.array([-1, -1])
-        how_many_pointers_saved = np.array([len(self.prog_stack)/3])
+        #how_many_pointers_saved = np.array([len(self.prog_stack)/3])
         bools = np.array([
             pt_1_left,
             pt_1_right,
@@ -594,7 +594,7 @@ class QuickSortListEnv(Environment):
             is_stack_full,
             is_ptr1_saved
         ])
-        return np.concatenate((p1p2p3, p1p2p3_pos, first_stack_pos, how_many_pointers_saved, bools), axis=0)
+        return np.concatenate((p1p2p3, p1p2p3_pos, first_stack_pos, bools), axis=0)
 
     def get_observation_dim(self):
         """
@@ -602,7 +602,7 @@ class QuickSortListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + 3 + 3 + 12
+        return 3 * 10 + 3 + 2 + 12
 
     def reset_to_state(self, state):
         """
