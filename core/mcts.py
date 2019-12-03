@@ -474,7 +474,7 @@ class MCTS:
         elif condition == "SEQUENTIAL":
             # Since the execution is sequential. We want to penalize
             # calling the same instruction twice.
-            penalty = self.structural_penalty_factor * sum(node["program_call_count"])
+            penalty = self.structural_penalty_factor * np.exp(-sum(node["program_call_count"]))
         else:
             penalty = 0
         return penalty
