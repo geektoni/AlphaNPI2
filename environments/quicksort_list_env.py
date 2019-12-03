@@ -576,9 +576,8 @@ class QuickSortListEnv(Environment):
         pt_2_right = int(self.p2_pos == (self.length - 1))
         pt_3_right = int(self.p3_pos == (self.length - 1))
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)
-        #p1p2p3_pos = np.eye(self.max_length)[[self.p1_pos, self.p2_pos, self.p3_pos]].reshape(-1)
         p1p2p3_pos = np.array([self.p1_pos, self.p2_pos, self.p3_pos])
-        first_stack_pos = np.array([self.prog_stack[0], self.prog_stack[1]]) if is_stack_full else np.array([-1, -1])
+        first_stack_pos = np.array([self.prog_stack[len(self.prog_stack-2)], self.prog_stack[len(self.prog_stack-1)]]) if is_stack_full else np.array([-1, -1])
         #how_many_pointers_saved = np.array([len(self.prog_stack)/3])
         bools = np.array([
             pt_1_left,
