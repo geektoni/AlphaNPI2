@@ -405,7 +405,7 @@ class QuickSortListEnv(Environment):
 
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
             = quicksort_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
-                               stop=False)
+                               stop=False, randomize=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
@@ -498,7 +498,7 @@ class QuickSortListEnv(Environment):
 
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_quicksort_update=True)
+                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_quicksort_update=True, randomize_push=True)
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT':

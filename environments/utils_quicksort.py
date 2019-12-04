@@ -15,11 +15,11 @@ def assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
 def asser_save_load_partition(init_pointers_pos1, init_pointers_pos2):
     assert init_pointers_pos1 < init_pointers_pos2 and init_pointers_pos1 == init_pointers_pos3, "Save Load Partition {}, {}".format(init_pointers_pos1, init_pointers_pos2)
 
-def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables, init_prog_stack, stop):
+def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables, init_prog_stack, stop, randomize=False):
 
-    val = np.random.randint(0,2)
+    val = np.random.randint(0,2) if randomize else 1
 
-    if val == 1:
+    if val == 0:
         if init_pointers_pos1 - 1  > 0 and init_temp_variables[0] < init_pointers_pos1 - 1 and not stop:
             init_prog_stack.append(init_pointers_pos3)
             init_prog_stack.append(init_pointers_pos1 - 1)
@@ -30,7 +30,6 @@ def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init
             init_prog_stack.append(init_pointers_pos2)
             init_prog_stack.append(init_pointers_pos1 + 1)
     else:
-
         if init_pointers_pos1 + 1 < init_pointers_pos2 and not stop:
             init_prog_stack.append(init_pointers_pos1 + 1)
             init_prog_stack.append(init_pointers_pos2)
@@ -154,7 +153,7 @@ def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2,
 
     return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
 
-def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False):
+def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False, randomize=False):
 
     """ (4 operations)
     POP
@@ -191,11 +190,11 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
                             stop_partition_update, stop_save_load_partition)
 
         if not stop:
-            init_prog_stack = random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables.copy(), init_prog_stack.copy(), stop)
+            init_prog_stack = random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables.copy(), init_prog_stack.copy(), stop, randomize)
 
     return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
 
-def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False):
+def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False, randomize_push=False):
 
     """ (1+n+1)
     PUSH
@@ -226,7 +225,7 @@ def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition
     stop = False
     while len(init_prog_stack) > 0 and not stop:
         scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
-           quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition, stop_partition_update, stop_quicksort_update, stop_save_load_partition)
+           quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition, stop_partition_update, stop_quicksort_update, stop_save_load_partition, randomize_push)
 
     # This means that we reached the end of the sorting without
     # exiting the loop. Therefore, we initialize everything manually.
