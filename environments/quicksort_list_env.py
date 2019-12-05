@@ -39,7 +39,7 @@ class QuickSortListEnv(Environment):
     The episode stops when the list is sorted.
     """
 
-    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True):
+    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True, random_push=True):
 
         assert length > 0, "length must be a positive integer"
         self.length = length
@@ -51,6 +51,7 @@ class QuickSortListEnv(Environment):
         self.prog_stack = []
         self.temp_variables = [-1]
         self.encoding_dim = encoding_dim
+        self.random_push=random_push
         self.has_been_reset = False
 
         if hierarchy:
@@ -478,27 +479,27 @@ class QuickSortListEnv(Environment):
 
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition=True)
+                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition=True, randomize_push=self.random_push)
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'PARTITION_UPDATE':
 
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition_update=True)
+                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition_update=True, randomize_push=self.random_push)
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'SAVE_LOAD_PARTITION':
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_save_load_partition=True)
+                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_save_load_partition=True, randomize_push=self.random_push)
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT_UPDATE':
 
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_quicksort_update=True, randomize_push=True)
+                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_quicksort_update=True, randomize_push=self.random_push)
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT':

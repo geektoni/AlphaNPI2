@@ -249,6 +249,10 @@ if __name__ == "__main__":
     for i in range(0,10000):
         arr = np.random.randint(0, 100, 5)
 
+        #print(quicksort_update(np.array([1, 2, 3, 3, 4, 5, 5, 7, 9, 9,]), 4,6,2, [5,6,5,2,3,2], [-1], False))
+        #break
+
+
         scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
             sample_quicksort_indexes(np.copy(arr), 5, stop_partition_update=True)
         assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
@@ -270,5 +274,9 @@ if __name__ == "__main__":
 
         scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
             sample_quicksort_indexes(np.copy(arr), 5, sort=True)
+
+        if not np.all(scratchpad_ints[:len(scratchpad_ints) - 1] <= scratchpad_ints[1:len(scratchpad_ints)]):
+            print("Not Sorted")
+
         if not np.array_equal(np.array(sorted(arr)), np.array(scratchpad_ints)):
             print("{}, {}".format(np.array(sorted(arr)), np.array(scratchpad_ints)))

@@ -28,6 +28,8 @@ if __name__ == "__main__":
     parser.add_argument('--tb-base-dir', help='Specify base tensorboard dir', default="runs", type=str)
     parser.add_argument('--structural-constraint', help="Use the structural constraint to train", action='store_true')
     parser.add_argument('--gamma', help="Specify gamma discount factor", default=0.97, type=float)
+    parser.add_argument('--penalize-level-0', help="Penalize level 0 operations when computing the Q-value", default=True, action='store_false')
+    parser.add_argument('--random-push', help="Generate the environment using random PUSH function for the stack.", default=True, action='store_false')
     args = parser.parse_args()
 
     # Get arguments
@@ -39,6 +41,7 @@ if __name__ == "__main__":
     save_results = args.save_results
     num_cpus = args.num_cpus
     conf.gamma = args.gamma
+    conf.penalize_level_0 = args.penalize_level_0
 
     # Verbose output
     if verbose:
@@ -82,7 +85,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
 
     # Load environment constants
-    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, random_push=args.random_push)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -113,12 +116,14 @@ if __name__ == "__main__":
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
-                         'use_dirichlet_noise': True, 'use_structural_constraint': conf.structural_constraint}
+                         'use_dirichlet_noise': True, 'use_structural_constraint': conf.structural_constraint,
+                         'penalize_level_0': conf.penalize_level_0}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
-                        'gamma': conf.gamma, 'use_structural_constraint': conf.structural_constraint}
+                        'gamma': conf.gamma, 'use_structural_constraint': conf.structural_constraint,
+                        'penalize_level_0': conf.penalize_level_0}
 
     # Specify a custom start level
     if custom_start_level:
@@ -139,7 +144,7 @@ if __name__ == "__main__":
         task_index = curriculum_scheduler.get_next_task_index()
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
-        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
+        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.random_push)
         max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
         trainer.env = env
         trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
@@ -152,7 +157,7 @@ if __name__ == "__main__":
         for idx in curriculum_scheduler.get_tasks_of_maximum_level():
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
-            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
+            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.random_push)
             max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
