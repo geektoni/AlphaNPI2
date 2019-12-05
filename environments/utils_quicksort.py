@@ -174,7 +174,7 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
     :return:
     """
 
-    if np.random.choice(2, 1, p=[1 - (1 / len(scratchpad_ints)), 1 / len(scratchpad_ints)])[0] == 1 and stop_quicksort_update:
+    if np.random.choice(2, 1, p=[0.5, 0.5])[0] == 1 and stop_quicksort_update:
         stop = True
 
     if not stop:
