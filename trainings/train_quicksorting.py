@@ -76,7 +76,7 @@ if __name__ == "__main__":
                                                                args.penalize_level_0, args.level_0_penalty,
                                                                args.not_random_push)
     # Path to tensorboard
-    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
+    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty,
                                                                args.not_random_push)
 
