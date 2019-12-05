@@ -19,6 +19,7 @@ c_puct = 0.5                                # trade-off exploration/exploitation
 temperature = 1.3                           # coefficient to artificially increase variance in mcts policy distributions
 level_closeness_coeff = 3.0                 # importance given to higher level programs
 penalize_level_0 = True                     # penalize level 0 action when computing Q-value
+level_0_custom_penalty = 1                  # custom penalty for the level 0 action
 
 # Training hyper-params
 num_iterations = 1000000                    # total number of iterations, one iteration corresponds to one task

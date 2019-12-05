@@ -29,6 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--structural-constraint', help="Use the structural constraint to train", action='store_true')
     parser.add_argument('--gamma', help="Specify gamma discount factor", default=0.97, type=float)
     parser.add_argument('--penalize-level-0', help="Penalize level 0 operations when computing the Q-value", default=True, action='store_false')
+    parser.add_argument('--level-0-penalty', help="Custom penalty value for the level 0 actions", default=-1.0, type=float)
     parser.add_argument('--random-push', help="Generate the environment using random PUSH function for the stack.", default=True, action='store_false')
     args = parser.parse_args()
 
@@ -42,6 +43,7 @@ if __name__ == "__main__":
     num_cpus = args.num_cpus
     conf.gamma = args.gamma
     conf.penalize_level_0 = args.penalize_level_0
+    conf.level_0_penalty = args.level_0_penalty
 
     # Verbose output
     if verbose:
@@ -117,13 +119,13 @@ if __name__ == "__main__":
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
                          'use_dirichlet_noise': True, 'use_structural_constraint': conf.structural_constraint,
-                         'penalize_level_0': conf.penalize_level_0}
+                         'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
                         'gamma': conf.gamma, 'use_structural_constraint': conf.structural_constraint,
-                        'penalize_level_0': conf.penalize_level_0}
+                        'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty}
 
     # Specify a custom start level
     if custom_start_level:
