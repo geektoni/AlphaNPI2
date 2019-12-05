@@ -374,8 +374,8 @@ class QuickSortListEnv(Environment):
     def _partition_update_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
-            = partition_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), stop=False)
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+            = partition_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), sample=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
@@ -383,9 +383,9 @@ class QuickSortListEnv(Environment):
     def _partition_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
             = partition(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
-                               stop=False)
+                               sample=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
@@ -393,10 +393,10 @@ class QuickSortListEnv(Environment):
     def _save_load_partition_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
             = save_load_partition(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(),
                                init_temp_vars.copy(),
-                               stop=False)
+                               sample=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
@@ -404,9 +404,9 @@ class QuickSortListEnv(Environment):
     def _quicksort_update_postcondition(self, init_state, state):
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, stop \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
             = quicksort_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
-                               stop=False, randomize=False)
+                               sample=False, randomize=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
@@ -464,50 +464,64 @@ class QuickSortListEnv(Environment):
         (at left position of the list).
 
         """
-        self.scratchpad_ints = np.random.randint(10, size=self.length)
         current_task_name = self.get_program_from_index(self.current_task_index)
+
+        # Sample multiple time the env if some of the steps is empty.
+        redo = True
+        while redo:
+            redo = False
+            self.scratchpad_ints = np.random.randint(10, size=self.length)
+            sampled_env = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, randomize_push=self.random_push)
+            for v in sampled_env.values():
+                if len(v) == 0:
+                    redo = True
+
+        # Randomly initialize things TODO: this can be probably removed.
         if (int(np.random.randint(0,10)%2==0)):
             init_prog_stack = list(np.random.random_integers(0, self.length-1, 3))
         else:
             init_prog_stack = []
         init_temp_variables = [-1 if np.random.randint(0, 2) == 1 else 0]
+
         if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
             init_pointers_pos3 = 0
         elif current_task_name == 'PARTITION':
 
+            index = np.random.choice(len(sampled_env["PARTITION"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition=True, randomize_push=self.random_push)
+            init_prog_stack, init_temp_variables = sampled_env["PARTITION"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'PARTITION_UPDATE':
 
+            index = np.random.choice(len(sampled_env["PARTITION_UPDATE"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_partition_update=True, randomize_push=self.random_push)
+            init_prog_stack, init_temp_variables = sampled_env["PARTITION_UPDATE"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'SAVE_LOAD_PARTITION':
+
+            index = np.random.choice(len(sampled_env["SAVE_LOAD_PARTITION"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_save_load_partition=True, randomize_push=self.random_push)
+            init_prog_stack, init_temp_variables = sampled_env["SAVE_LOAD_PARTITION"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT_UPDATE':
 
+            index = np.random.choice(len(sampled_env["QUICKSORT_UPDATE"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables \
-                = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, stop_quicksort_update=True, randomize_push=self.random_push)
+            init_prog_stack, init_temp_variables = sampled_env["QUICKSORT_UPDATE"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT':
-            init_pointers_pos1 = 0
-            init_pointers_pos2 = self.length-1
-            init_pointers_pos3 = 0
-            init_prog_stack = []
-            init_temp_variables = [-1]
+
+            # Here the first value is the initial condition
+            temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
+            init_prog_stack, init_temp_variables = sampled_env["QUICKSORT"][0]
+            self.scratchpad_ints = np.copy(temp_scratchpad_ints)
+
         elif current_task_name == 'RESET':
             while True:
                 init_pointers_pos1 = int(np.random.randint(0, self.length))

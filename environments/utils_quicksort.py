@@ -1,5 +1,7 @@
 import numpy as np
 
+from collections import OrderedDict
+
 def assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp):
     assert init_pointers_pos3 < init_pointers_pos2 \
            and init_pointers_pos1 < init_pointers_pos2 \
@@ -12,7 +14,7 @@ def assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
            and temp[0] == init_pointers_pos1, "Partition {}, {}, {}, {}".format(
         init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, temp)
 
-def asser_save_load_partition(init_pointers_pos1, init_pointers_pos2):
+def assert_save_load_partition(init_pointers_pos1, init_pointers_pos2):
     assert init_pointers_pos1 < init_pointers_pos2 and init_pointers_pos1 == init_pointers_pos3, "Save Load Partition {}, {}".format(init_pointers_pos1, init_pointers_pos2)
 
 def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables, init_prog_stack, stop, randomize=False):
@@ -46,7 +48,7 @@ def random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init
 def assert_quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp):
     assert len(stack) >= 3 and temp[0] == -1, "Quicksort Update: {}".format(stack)
 
-def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition_update=False):
+def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, sampled_environment={}, sample=True):
 
     """ (3)
     Representation as sub commands:
@@ -65,19 +67,18 @@ def partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
     :return:
     """
 
-    if np.random.choice(2, 1, p=[0.7, 0.3])[0] == 1 and stop_partition_update:
-        stop = True
-        assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
+    if sample:
+        sampled_environment["PARTITION_UPDATE"].append((np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy()))
 
-    if scratchpad_ints[init_pointers_pos3] < scratchpad_ints[init_pointers_pos2] and not stop:
+    if scratchpad_ints[init_pointers_pos3] < scratchpad_ints[init_pointers_pos2]:
         scratchpad_ints[[init_pointers_pos3, init_pointers_pos1]] = scratchpad_ints[
             [init_pointers_pos1, init_pointers_pos3]]
         init_pointers_pos1 += 1
 
-    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy(), stop
+    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy()
 
 
-def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition=False, stop_partition_update=False):
+def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, sampled_environment={}, sample=True):
     """
     (total of 2*(n-1)+2)
     from 0 to n-1:
@@ -98,23 +99,19 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
     :return:
     """
 
-    if np.random.choice(2, 1, p=[0.5, 0.5])[0] == 1 and stop_partition:
-        stop = True
-        assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
+    if sample:
+        sampled_environment["PARTITION"].append((np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy()))
 
-    while init_pointers_pos3 < init_pointers_pos2 and not stop:
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop = \
-        partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, stop, stop_partition_update)
-        if not stop:
-            init_pointers_pos3 += 1
+    while init_pointers_pos3 < init_pointers_pos2:
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
+        partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, sampled_environment=sampled_environment, sample=sample)
+        init_pointers_pos3 += 1
 
-    if not stop:
-        scratchpad_ints[[init_pointers_pos1, init_pointers_pos2]] = scratchpad_ints[
-            [init_pointers_pos2, init_pointers_pos1]]
+    scratchpad_ints[[init_pointers_pos1, init_pointers_pos2]] = scratchpad_ints[[init_pointers_pos2, init_pointers_pos1]]
 
-    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy(), stop
+    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack.copy(), temp.copy()
 
-def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_save_load_partition=False):
+def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, sampled_environment={}, sample=True):
 
     """ (4 operations)
     SAVE_PTR1
@@ -135,25 +132,23 @@ def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2,
     :return:
     """
 
-    if np.random.choice(2, 1, p=[0.5, 0.5])[0] == 1 and stop_save_load_partition:
-        stop = True
+    if sample:
+        sampled_environment["SAVE_LOAD_PARTITION"].append((np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy()))
 
-    if not stop:
-        init_temp_variables = [init_pointers_pos1]
+    init_temp_variables = [init_pointers_pos1]
 
-        # Run the partition method
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, \
-        init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
-            partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack,
-                  init_temp_variables, stop, stop_partition, stop_partition_update)
+    # Run the partition method
+    scratchpad_ints, init_pointers_pos1, init_pointers_pos2, \
+    init_pointers_pos3, init_prog_stack, init_temp_variables = \
+        partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack,
+                init_temp_variables, sampled_environment, sample=sample)
 
-    if not stop:
-        init_pointers_pos3 = init_temp_variables[0]
-        init_temp_variables = [-1]
+    init_pointers_pos3 = init_temp_variables[0]
+    init_temp_variables = [-1]
 
-    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
+    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy()
 
-def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False, randomize=False):
+def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, randomize=False, sampled_environment={}, sample=True):
 
     """ (4 operations)
     POP
@@ -174,27 +169,24 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
     :return:
     """
 
-    if np.random.choice(2, 1, p=[0.5, 0.5])[0] == 1 and stop_quicksort_update:
-        stop = True
+    if sample:
+        sampled_environment["QUICKSORT_UPDATE"].append((np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy()))
 
-    if not stop:
-        init_pointers_pos1 = init_prog_stack.pop()
-        init_pointers_pos2 = init_prog_stack.pop()
-        init_pointers_pos3 = init_prog_stack.pop()
+    init_pointers_pos1 = init_prog_stack.pop()
+    init_pointers_pos2 = init_prog_stack.pop()
+    init_pointers_pos3 = init_prog_stack.pop()
 
-    if init_pointers_pos1 < init_pointers_pos2 and not stop:
+    if init_pointers_pos1 < init_pointers_pos2:
 
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables = \
             save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3,
-                            init_prog_stack, init_temp_variables, stop, stop_partition,
-                            stop_partition_update, stop_save_load_partition)
+                            init_prog_stack, init_temp_variables, sampled_environment, sample=sample)
 
-        if not stop:
-            init_prog_stack = random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables.copy(), init_prog_stack.copy(), stop, randomize)
+        init_prog_stack = random_push(init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_temp_variables.copy(), init_prog_stack.copy(), randomize)
 
-    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy(), stop
+    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy()
 
-def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition=False, stop_partition_update=False, stop_quicksort_update=False, stop_save_load_partition=False, randomize_push=False):
+def sample_quicksort_indexes(scratchpad_ints, length, randomize_push=False):
 
     """ (1+n+1)
     PUSH
@@ -211,6 +203,12 @@ def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition
     :return:
     """
 
+    sampled_environment = OrderedDict(sorted({"QUICKSORT": [],
+                                              "PARTITION_UPDATE": [],
+                                              "PARTITION": [],
+                                              "SAVE_LOAD_PARTITION": [],
+                                              "QUICKSORT_UPDATE": []}.items()))
+
     init_pointers_pos1 = 0
     init_pointers_pos2 = length - 1
     init_pointers_pos3 = 0
@@ -222,58 +220,43 @@ def sample_quicksort_indexes(scratchpad_ints, length, sort=False, stop_partition
     init_prog_stack.append(init_pointers_pos2)
     init_prog_stack.append(init_pointers_pos1)
 
-    stop = False
-    while len(init_prog_stack) > 0 and not stop:
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop = \
-           quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, stop, stop_partition, stop_partition_update, stop_quicksort_update, stop_save_load_partition, randomize_push)
+    sampled_environment["QUICKSORT"].append((np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy()))
 
-    # This means that we reached the end of the sorting without
-    # exiting the loop. Therefore, we initialize everything manually.
-    if not stop and not sort:
-        np.random.shuffle(scratchpad_ints)
-        init_pointers_pos1 = 0
-        init_pointers_pos2 = length - 1
-        init_pointers_pos3 = 0
-        if (stop_quicksort_update):
-            init_prog_stack = [0, length-1, 0]
-            init_temp_variables = [-1]
-        else:
-            init_prog_stack = []
-            init_temp_variables = [0]
+    while len(init_prog_stack) > 0:
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables = \
+           quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, randomize_push, sampled_environment)
 
-    return np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy()
+    sampled_environment["QUICKSORT"].append((np.copy(scratchpad_ints), init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack.copy(), init_temp_variables.copy()))
+
+    return sampled_environment.copy()
 
 
 # Testing
 if __name__ == "__main__":
     for i in range(0,10000):
-        arr = np.random.randint(0, 100, 5)
 
-        #print(quicksort_update(np.array([1, 2, 3, 3, 4, 5, 5, 7, 9, 9,]), 4,6,2, [5,6,5,2,3,2], [-1], False))
-        #break
+        arr = np.random.randint(0, 100, 10)
+
+        env = sample_quicksort_indexes(np.copy(arr), 10)
 
 
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
-            sample_quicksort_indexes(np.copy(arr), 5, stop_partition_update=True)
-        assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
-        #print(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
+        for e in env["PARTITION_UPDATE"]:
+            scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = e
+            assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
 
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
-            sample_quicksort_indexes(np.copy(arr), 5, stop_partition=True)
-        assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
-        #print(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
+        for e in env["PARTITION"]:
+            scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = e
+            assert_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
 
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
-            sample_quicksort_indexes(np.copy(arr), 5, stop_save_load_partition=True)
-        asser_save_load_partition(init_pointers_pos1, init_pointers_pos2)
+        for e in env["SAVE_LOAD_PARTITION"]:
+            scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = e
+            assert_save_load_partition(init_pointers_pos1, init_pointers_pos2)
 
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
-            sample_quicksort_indexes(np.copy(arr), 5, stop_quicksort_update=True)
-        assert_quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
-        #print(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
+        for e in env["QUICKSORT_UPDATE"]:
+            scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = e
+            assert_quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp)
 
-        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = \
-            sample_quicksort_indexes(np.copy(arr), 5, sort=True)
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = env["QUICKSORT"][1]
 
         if not np.all(scratchpad_ints[:len(scratchpad_ints) - 1] <= scratchpad_ints[1:len(scratchpad_ints)]):
             print("Not Sorted")
