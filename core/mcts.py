@@ -478,7 +478,7 @@ class MCTS:
         if condition == "WHILE":
             max_depth = self.max_depth_dict[node["program_index"]]
             total_called = sum(node["program_call_count"])
-            penalty = self.structural_penalty_factor * np.exp(-(max_depth-total_called+1))
+            penalty = self.structural_penalty_factor * np.exp(-(max_depth-total_called))
         elif condition == "SEQUENTIAL":
             # Since the execution is sequential. We want to penalize
             # calling the same instruction twice.
