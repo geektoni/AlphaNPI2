@@ -29,8 +29,8 @@ if __name__ == "__main__":
     parser.add_argument('--structural-constraint', help="Use the structural constraint to train", action='store_true')
     parser.add_argument('--gamma', help="Specify gamma discount factor", default=0.97, type=float)
     parser.add_argument('--penalize-level-0', help="Penalize level 0 operations when computing the Q-value", default=True, action='store_false')
-    parser.add_argument('--level-0-penalty', help="Custom penalty value for the level 0 actions", default=-1.0, type=float)
-    parser.add_argument('--random-push', help="Generate the environment using random PUSH function for the stack.", default=True, action='store_false')
+    parser.add_argument('--level-0-penalty', help="Custom penalty value for the level 0 actions", default=1.0, type=float)
+    parser.add_argument('--not-random-push', help="Generate the environment using random PUSH function for the stack.", default=True, action='store_false')
     args = parser.parse_args()
 
     # Get arguments
@@ -68,11 +68,17 @@ if __name__ == "__main__":
     ts = time.localtime(time.time())
     date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
     # Path to save policy
-    model_save_path = '../models/list_npi_{}-{}.pth'.format(date_time, seed)
+    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
+                                                               args.penalize_level_0, args.level_0_penalty,
+                                                               args.not_random_push)
     # Path to save results
-    results_save_path = '../results/list_npi_{}-{}.txt'.format(date_time, seed)
+    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
+                                                               args.penalize_level_0, args.level_0_penalty,
+                                                               args.not_random_push)
     # Path to tensorboard
-    tensorboard_path = '{}/list_npi_{}-{}'.format(base_tb_dir, date_time, seed)
+    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
+                                                               args.penalize_level_0, args.level_0_penalty,
+                                                               args.not_random_push)
 
     # Instantiate tensorboard writer
     if tensorboard:
@@ -87,7 +93,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
 
     # Load environment constants
-    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, random_push=args.random_push)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, random_push=args.not_random_push)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -146,7 +152,7 @@ if __name__ == "__main__":
         task_index = curriculum_scheduler.get_next_task_index()
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
-        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.random_push)
+        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.not_random_push)
         max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
         trainer.env = env
         trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
@@ -159,7 +165,7 @@ if __name__ == "__main__":
         for idx in curriculum_scheduler.get_tasks_of_maximum_level():
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
-            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.random_push)
+            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.not_random_push)
             max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
