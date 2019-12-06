@@ -67,17 +67,14 @@ if __name__ == "__main__":
     ts = time.localtime(time.time())
     date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
     # Path to save policy
-    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
-                                                               args.penalize_level_0, args.level_0_penalty,
-                                                               args.not_random_push)
+    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
+                                                               args.penalize_level_0, args.level_0_penalty)
     # Path to save results
-    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
-                                                               args.penalize_level_0, args.level_0_penalty,
-                                                               args.not_random_push)
+    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
+                                                               args.penalize_level_0, args.level_0_penalty)
     # Path to tensorboard
-    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
-                                                               args.penalize_level_0, args.level_0_penalty,
-                                                               args.not_random_push)
+    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
+                                                               args.penalize_level_0, args.level_0_penalty)
 
     # Instantiate tensorboard writer
     if tensorboard:
