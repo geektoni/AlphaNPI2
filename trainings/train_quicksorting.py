@@ -148,7 +148,7 @@ if __name__ == "__main__":
         task_index = curriculum_scheduler.get_next_task_index()
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
-        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.not_random_push)
+        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
         max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
         trainer.env = env
         trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         for idx in curriculum_scheduler.get_tasks_of_maximum_level():
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
-            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, random_push=args.not_random_push)
+            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim)
             max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
