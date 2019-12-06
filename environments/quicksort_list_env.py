@@ -406,7 +406,7 @@ class QuickSortListEnv(Environment):
 
         init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
             = quicksort_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
-                               sample=False, randomize=False)
+                               sample=False)
 
         new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
         return self.compare_state(new_state, state)
@@ -471,7 +471,7 @@ class QuickSortListEnv(Environment):
         while redo:
             redo = False
             self.scratchpad_ints = np.random.randint(10, size=self.length)
-            sampled_env = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length, randomize_push=self.random_push)
+            sampled_env = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length)
             for v in sampled_env.values():
                 if len(v) == 0:
                     redo = True
