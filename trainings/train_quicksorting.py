@@ -30,7 +30,6 @@ if __name__ == "__main__":
     parser.add_argument('--gamma', help="Specify gamma discount factor", default=0.97, type=float)
     parser.add_argument('--penalize-level-0', help="Penalize level 0 operations when computing the Q-value", default=True, action='store_false')
     parser.add_argument('--level-0-penalty', help="Custom penalty value for the level 0 actions", default=1.0, type=float)
-    parser.add_argument('--not-random-push', help="Generate the environment using random PUSH function for the stack.", default=True, action='store_false')
     args = parser.parse_args()
 
     # Get arguments
@@ -93,7 +92,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
 
     # Load environment constants
-    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, random_push=args.not_random_push)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
