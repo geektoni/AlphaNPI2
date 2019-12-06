@@ -35,7 +35,7 @@ class MCTS:
                  temperature=1.0, use_dirichlet_noise=False,
                  dir_epsilon=0.25, dir_noise=0.03, exploit=False, gamma=0.97, save_sub_trees=False,
                  recursion_depth=0, max_recursion_depth=500, qvalue_temperature=1.0, recursive_penalty=0.9,
-                 structural_penalty_factor=1, use_structural_constraint = False, penalize_level_0=True,
+                 structural_penalty_factor=3, use_structural_constraint = False, penalize_level_0=True,
                  level_0_penalty=1):
 
         self.policy = policy
