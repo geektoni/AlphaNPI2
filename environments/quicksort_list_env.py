@@ -39,7 +39,7 @@ class QuickSortListEnv(Environment):
     The episode stops when the list is sorted.
     """
 
-    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True):
+    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True, expose_stack=False):
 
         assert length > 0, "length must be a positive integer"
         self.length = length
@@ -52,6 +52,7 @@ class QuickSortListEnv(Environment):
         self.temp_variables = [-1]
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
+        self.expose_stack = expose_stack
 
         if hierarchy:
             self.programs_library = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
@@ -583,6 +584,8 @@ class QuickSortListEnv(Environment):
         pointers_same_pos = int(self.p1_pos == self.p2_pos)
         pointers_same_pos_2 = int(self.p2_pos == self.p3_pos)
         pointers_same_pos_3 = int(self.p3_pos == self.p1_pos)
+        is_pointer_1_less_than_2 = int(self.p1_pos < self.p2_pos)
+        is_pointer_3_less_than_2 = int(self.p3_pos < self.p2_pos)
         pt_1_left = int(self.p1_pos == 0)
         pt_2_left = int(self.p2_pos == 0)
         pt_3_left = int(self.p3_pos == 0)
@@ -590,9 +593,18 @@ class QuickSortListEnv(Environment):
         pt_2_right = int(self.p2_pos == (self.length - 1))
         pt_3_right = int(self.p3_pos == (self.length - 1))
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)
-        p1p2p3_pos = np.array([self.p1_pos, self.p2_pos, self.p3_pos])
-        first_stack_pos = np.array([self.prog_stack[len(self.prog_stack)-2], self.prog_stack[len(self.prog_stack)-1]]) if is_stack_full else np.array([-1, -1])
+        #p1p2p3_pos = np.array([self.p1_pos, self.p2_pos, self.p3_pos])
+        #first_stack_pos = np.array([self.prog_stack[len(self.prog_stack)-2], self.prog_stack[len(self.prog_stack)-1]]) if is_stack_full else np.array([-1, -1])
         #how_many_pointers_saved = np.array([len(self.prog_stack)/3])
+
+        if self.expose_stack:
+            if is_stack_full:
+                first_stack_elem = self.prog_stack[len(self.prog_stack)-2]
+                second_stack_elem = self.prog_stack[len(self.prog_stack)-1]
+                topstack = np.eye(10)[[self.scratchpad_ints[first_stack_elem], self.scratchpad_ints[second_stack_elem]]].reshape(-1)
+            else:
+                topstack = np.eye(10)[[0,0]].reshape(-1)
+
         bools = np.array([
             pt_1_left,
             pt_1_right,
@@ -605,9 +617,19 @@ class QuickSortListEnv(Environment):
             pointers_same_pos_3,
             is_sorted,
             is_stack_full,
-            is_ptr1_saved
+            is_ptr1_saved,
+            is_pointer_1_less_than_2,
+            is_pointer_3_less_than_2
         ])
-        return np.concatenate((p1p2p3, p1p2p3_pos, first_stack_pos, bools), axis=0)
+        #return np.concatenate((p1p2p3, p1p2p3_pos, first_stack_pos, bools), axis=0)
+
+        # If we want to expose the stack then we concatenate it
+        if self.expose_stack:
+            final_observation = np.concatenate((p1p2p3, topstack, bools), axis=0)
+        else:
+            final_observation = np.concatenate((p1p2p3, bools), axis=0)
+
+        return final_observation
 
     def get_observation_dim(self):
         """
@@ -615,7 +637,13 @@ class QuickSortListEnv(Environment):
         Returns:
             the size of the observation tensor
         """
-        return 3 * 10 + 3 + 2 + 12
+        #return 3 * 10 + 3 + 2 + 12
+        if self.expose_stack:
+            total_observation_dim = 3*10 + 2*10 + 14
+        else:
+            total_observation_dim = 3 * 10 + 14
+
+        return total_observation_dim
 
     def reset_to_state(self, state):
         """
