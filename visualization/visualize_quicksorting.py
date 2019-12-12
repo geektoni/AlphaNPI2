@@ -86,8 +86,14 @@ if __name__ == "__main__":
         res = mcts.sample_execution_trace()
         root_node, r, failed_state_index = res[6], res[7], res[12]
 
-        for i in range(0, len(failed_state_index)):
-            total_failed_state_index[i] += failed_state_index[i]
+        for j in range(0, len(failed_state_index)):
+            total_failed_state_index[j] += failed_state_index[j]
+
+        # Save a copy of the failing states (specifically for PARTITION_UPDATE)
+        if len(failed_state_index[partition_index]) != 0 and failed_state_index[partition_index][0]==7:
+            print(env.sampled_env[args.program][failed_state_index[partition_index][0]])
+            visualiser = MCTSvisualiser(env=env)
+            visualiser.print_mcts(root_node=root_node, file_path='mcts_{}.gv'.format(i))
 
         if len(mcts.programs_failed_indices) != 0:
             total_failed_programs[mcts.programs_failed_indices[len(mcts.programs_failed_indices)-1]] += 1

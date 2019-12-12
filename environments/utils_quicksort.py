@@ -222,9 +222,10 @@ def sample_quicksort_indexes(scratchpad_ints, length):
 if __name__ == "__main__":
     for i in range(0,10000):
 
-        arr = np.random.randint(0, 100, 10)
+        arr = np.random.randint(0, 100, 7)
+        print("")
 
-        env = sample_quicksort_indexes(np.copy(arr), 10)
+        env = sample_quicksort_indexes(np.copy(arr), 7)
 
         for e in env["PARTITION_UPDATE"]:
             scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp = e

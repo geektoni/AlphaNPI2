@@ -473,8 +473,8 @@ class QuickSortListEnv(Environment):
         while redo:
             redo = False
             self.scratchpad_ints = np.random.randint(10, size=self.length)
-            sampled_env = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length)
-            for v in sampled_env.values():
+            self.sampled_env = sample_quicksort_indexes(np.copy(self.scratchpad_ints), self.length)
+            for v in self.sampled_env.values():
                 if len(v) == 0:
                     redo = True
 
@@ -491,30 +491,30 @@ class QuickSortListEnv(Environment):
             init_pointers_pos3 = 0
         elif current_task_name == 'PARTITION':
 
-            index = np.random.choice(len(sampled_env["PARTITION"]))
+            index = np.random.choice(len(self.sampled_env["PARTITION"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = sampled_env["PARTITION"][index]
+            init_prog_stack, init_temp_variables = self.sampled_env["PARTITION"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'PARTITION_UPDATE':
 
-            index = np.random.choice(len(sampled_env["PARTITION_UPDATE"]))
+            index = np.random.choice(len(self.sampled_env["PARTITION_UPDATE"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = sampled_env["PARTITION_UPDATE"][index]
+            init_prog_stack, init_temp_variables = self.sampled_env["PARTITION_UPDATE"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'SAVE_LOAD_PARTITION':
 
-            index = np.random.choice(len(sampled_env["SAVE_LOAD_PARTITION"]))
+            index = np.random.choice(len(self.sampled_env["SAVE_LOAD_PARTITION"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = sampled_env["SAVE_LOAD_PARTITION"][index]
+            init_prog_stack, init_temp_variables = self.sampled_env["SAVE_LOAD_PARTITION"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT_UPDATE':
 
-            index = np.random.choice(len(sampled_env["QUICKSORT_UPDATE"]))
+            index = np.random.choice(len(self.sampled_env["QUICKSORT_UPDATE"]))
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = sampled_env["QUICKSORT_UPDATE"][index]
+            init_prog_stack, init_temp_variables = self.sampled_env["QUICKSORT_UPDATE"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT':
@@ -522,7 +522,7 @@ class QuickSortListEnv(Environment):
             # Here the first value is the initial condition
             index = 0
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = sampled_env["QUICKSORT"][0]
+            init_prog_stack, init_temp_variables = self.sampled_env["QUICKSORT"][0]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'RESET':
