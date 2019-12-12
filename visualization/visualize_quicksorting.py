@@ -33,6 +33,7 @@ if __name__ == "__main__":
                         type=int)
     parser.add_argument('--program', help='Size of the validation lists we want to order', default='QUICKSORT',
                         type=str)
+    parser.add_argument('--iter', help="Number of iterations", default=10000, type=int)
     args = parser.parse_args()
 
     # Set random seed
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     total_failed_programs = [0 for a in range(0, len(env.programs_library))]
     total_failed_state_index = [[] for a in range(0, len(env.programs_library))]
     total_failures = 0
-    for i in tqdm(range(6000)):
+    for i in tqdm(range(args.iter)):
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=True)
         mcts = MCTS(policy, env, partition_index, **mcts_test_params)
         res = mcts.sample_execution_trace()
@@ -109,7 +110,7 @@ if __name__ == "__main__":
     #plt.tick_params(labelrotation=90)
 
     #plt.tight_layout()
-    plt.show()
+    plt.savefig("result.png")
 
     print(total_failed_programs)
     for i in range(0, len(total_failed_programs)):
