@@ -110,7 +110,7 @@ if __name__ == "__main__":
     #plt.tick_params(labelrotation=90)
 
     #plt.tight_layout()
-    plt.savefig("result.png")
+    plt.savefig("result_{}.png".format(args.program))
 
     print(total_failed_programs)
     for i in range(0, len(total_failed_programs)):
