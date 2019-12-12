@@ -232,7 +232,7 @@ class QuickSortListEnv(Environment):
         self.scratchpad_ints[[self.p1_pos, self.p3_pos]] = self.scratchpad_ints[[self.p3_pos, self.p1_pos]]
 
     def _swap_pivot_precondition(self):
-        return self.p1_pos != self.p3_pos
+        return self.p1_pos != self.p3_pos #and self.scratchpad_ints[self.p3_pos] < self.scratchpad_ints[self.p2_pos]
 
     def _push(self):
         if self.p1_pos+1 < self.p2_pos:
@@ -466,6 +466,8 @@ class QuickSortListEnv(Environment):
         """
         current_task_name = self.get_program_from_index(self.current_task_index)
 
+        index = -1
+
         # Sample multiple time the env if some of the steps is empty.
         redo = True
         while redo:
@@ -518,6 +520,7 @@ class QuickSortListEnv(Environment):
         elif current_task_name == 'QUICKSORT':
 
             # Here the first value is the initial condition
+            index = 0
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables = sampled_env["QUICKSORT"][0]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
@@ -556,6 +559,8 @@ class QuickSortListEnv(Environment):
         self.prog_stack = init_prog_stack.copy()
         self.temp_variables = init_temp_variables.copy()
         self.has_been_reset = True
+
+        return index
 
     def get_state(self):
         """Returns the current state.

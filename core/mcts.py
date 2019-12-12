@@ -295,7 +295,7 @@ class MCTS:
                         if not self.clean_sub_executions:
                             print('program {} did not execute correctly'.format(program_to_call))
                             self.programs_failed_indices.append(program_to_call_index)
-                            #self.programs_failed_indices += sub_mcts.programs_failed_indices
+                            self.programs_failed_indices += sub_mcts.programs_failed_indices
                             self.programs_failed_initstates.append(sub_mcts_init_state)
 
                         observation = self.env.get_observation()
@@ -406,7 +406,7 @@ class MCTS:
         """
 
         # start the task
-        init_observation = self.env.start_task(self.task_index)
+        init_observation, env_index = self.env.start_task(self.task_index)
         with torch.no_grad():
             state_h, state_c = self.policy.init_tensors()
             self.env_init_state = self.env.get_state()
@@ -437,6 +437,7 @@ class MCTS:
             self.rewards = []
             self.programs_failed_indices = []
             self.programs_failed_initstates = []
+            self.programs_failed_states_indices = [[] for i in range(len(self.env.programs_library))]
 
             self.global_recursive_call = False
 
@@ -452,6 +453,7 @@ class MCTS:
                 # if recursive task but do not called itself, add penalization
                 task_reward -= self.recursive_penalty
         else:
+            self.programs_failed_states_indices[self.task_index].append(env_index)
             task_reward = -1
 
         # Replace None rewards by the true final task reward
@@ -462,7 +464,7 @@ class MCTS:
 
         return self.observations, self.programs_index, self.previous_actions, self.mcts_policies, \
                self.lstm_states, max_depth_reached, self.root_node, task_reward, self.clean_sub_executions, self.rewards, \
-               self.programs_failed_indices, self.programs_failed_initstates
+               self.programs_failed_indices, self.programs_failed_initstates, self.programs_failed_states_indices
 
     def return_structural_penalty(self, node, condition=None):
         """
