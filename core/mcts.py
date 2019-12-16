@@ -406,7 +406,7 @@ class MCTS:
         """
 
         # start the task
-        init_observation, env_index = self.env.start_task(self.task_index)
+        init_observation, env_index, env_total_size = self.env.start_task(self.task_index)
         with torch.no_grad():
             state_h, state_c = self.policy.init_tensors()
             self.env_init_state = self.env.get_state()
@@ -453,7 +453,7 @@ class MCTS:
                 # if recursive task but do not called itself, add penalization
                 task_reward -= self.recursive_penalty
         else:
-            self.programs_failed_states_indices[self.task_index].append(env_index)
+            self.programs_failed_states_indices[self.task_index].append((env_index, env_total_size))
             task_reward = -1
 
         # Replace None rewards by the true final task reward

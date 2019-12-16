@@ -466,6 +466,7 @@ class QuickSortListEnv(Environment):
         """
         current_task_name = self.get_program_from_index(self.current_task_index)
 
+        total_size=-1
         index = -1
 
         # Sample multiple time the env if some of the steps is empty.
@@ -492,6 +493,7 @@ class QuickSortListEnv(Environment):
         elif current_task_name == 'PARTITION':
 
             index = np.random.choice(len(self.sampled_env["PARTITION"]))
+            total_size = len(self.sampled_env["PARTITION"])
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables = self.sampled_env["PARTITION"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
@@ -499,6 +501,7 @@ class QuickSortListEnv(Environment):
         elif current_task_name == 'PARTITION_UPDATE':
 
             index = np.random.choice(len(self.sampled_env["PARTITION_UPDATE"]))
+            total_size = len(self.sampled_env["PARTITION_UPDATE"])
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables = self.sampled_env["PARTITION_UPDATE"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
@@ -506,6 +509,7 @@ class QuickSortListEnv(Environment):
         elif current_task_name == 'SAVE_LOAD_PARTITION':
 
             index = np.random.choice(len(self.sampled_env["SAVE_LOAD_PARTITION"]))
+            total_size = len(self.sampled_env["SAVE_LOAD_PARTITION"])
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables = self.sampled_env["SAVE_LOAD_PARTITION"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
@@ -513,6 +517,7 @@ class QuickSortListEnv(Environment):
         elif current_task_name == 'QUICKSORT_UPDATE':
 
             index = np.random.choice(len(self.sampled_env["QUICKSORT_UPDATE"]))
+            total_size = len(self.sampled_env["QUICKSORT_UPDATE"])
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
             init_prog_stack, init_temp_variables = self.sampled_env["QUICKSORT_UPDATE"][index]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
@@ -560,7 +565,7 @@ class QuickSortListEnv(Environment):
         self.temp_variables = init_temp_variables.copy()
         self.has_been_reset = True
 
-        return index
+        return index, total_size
 
     def get_state(self):
         """Returns the current state.

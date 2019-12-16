@@ -135,16 +135,17 @@ class Environment(ABC):
         self.tasks_list.append(task_index)
 
         state_index = -1
+        total_size = -1
 
         if len(self.tasks_dict.keys()) == 0:
             # reset env
-            state_index = self.reset_env()
+            state_index, total_size = self.reset_env()
 
         # store init state
         init_state = self.get_state()
         self.tasks_dict[len(self.tasks_list)] = init_state
 
-        return self.get_observation(), state_index
+        return self.get_observation(), state_index, total_size
 
     def end_task(self):
         """
