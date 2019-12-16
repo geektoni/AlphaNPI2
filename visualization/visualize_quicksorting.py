@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 import numpy as np
+import pandas as pd
 
 import argparse
 
@@ -91,7 +92,6 @@ if __name__ == "__main__":
 
         # Save a copy of the failing states (specifically for PARTITION_UPDATE)
         if len(failed_state_index[partition_index]) != 0 and failed_state_index[partition_index][0]==7:
-            print(env.sampled_env[args.program][failed_state_index[partition_index][0]])
             visualiser = MCTSvisualiser(env=env)
             visualiser.print_mcts(root_node=root_node, file_path='mcts_{}.gv'.format(i))
 
@@ -110,13 +110,29 @@ if __name__ == "__main__":
 
     total_failed_state_index = np.array(total_failed_state_index)
 
-    plt.figure()
+    plt.figure(figsize=(11,6))
     plt.title(env.get_program_from_index(partition_index))
-    sns.countplot(x=np.array(total_failed_state_index[partition_index]))
+
+    empty_dict = [[0 for i in range(0,30)] for j in range(0,30)]
+    for e in total_failed_state_index[partition_index]:
+        empty_dict[e[1]-1][e[0]] +=1
+
+        #if e[1] in empty_dict:
+        #    empty_dict[e[1]].append(e[0])
+        #else:
+        #    empty_dict[e[1]] = []
+        #    empty_dict[e[1]].append(e[0])
+
+    print(pd.DataFrame(empty_dict))
+
+
+    sns.heatmap(data=pd.DataFrame(empty_dict), cmap="YlGnBu", annot=True)
+    plt.ylabel("Total sampled states")
+    plt.xlabel("State index")
     #plt.tick_params(labelrotation=90)
 
-    #plt.tight_layout()
-    plt.savefig("result_{}.png".format(args.program))
+    plt.tight_layout()
+    plt.savefig("result_{}.png".format(args.program), dpi=500)
 
     print(total_failed_programs)
     for i in range(0, len(total_failed_programs)):
