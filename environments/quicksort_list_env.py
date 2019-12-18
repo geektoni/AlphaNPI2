@@ -53,6 +53,16 @@ class QuickSortListEnv(Environment):
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
         self.expose_stack = expose_stack
+        self.sample_from_errors_prob = 0.3
+        self.max_failed_envs = 100
+
+        self.failed_executions_env = OrderedDict(sorted({
+            "PARTITION_UPDATE": [],
+            "PARTITION": [],
+            "SAVE_LOAD_PARTITION": [],
+            "QUICKSORT_UPDATE": [],
+            "QUICKSORT": []
+                                                        }.items()))
 
         if hierarchy:
             self.programs_library = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
@@ -459,6 +469,48 @@ class QuickSortListEnv(Environment):
         """
         return np.argmax(one_encoding)
 
+    def update_failing_envs(self, state, program):
+        """
+        Update failing env count
+        :param env: current failed env
+        :param program: current failed program
+        :return:
+        """
+
+        if len(self.failed_executions_env[program]) == 0:
+            self.failed_executions_env[program].append((self.get_state_clone(state), 1))
+        else:
+            found = False
+            for i in range(len(self.failed_executions_env[program])):
+                if self.compare_state(state, self.failed_executions_env[program][i][0]):
+                    self.failed_executions_env[program][i] = (self.failed_executions_env[program][i][0],self.failed_executions_env[program][i][1]+1)
+                    found = True
+                    break
+            if not found:
+                # Remove the first failed program from the list to make space for the new one
+                if len(self.failed_executions_env[program]) >= self.max_failed_envs:
+                    del self.failed_executions_env[0]
+                self.failed_executions_env[program].append((self.get_state_clone(state), 1))
+
+    def return_sample_state(self, program):
+        """
+        Return the dictionary where to sample from.
+        :param program: program we are resetting
+        :return: the dictionary
+        """
+        if np.random.random_sample() < self.sample_from_errors_prob and len(self.failed_executions_env[program]) > 0:
+            env = self.failed_executions_env
+            total_errors = sum([x[1] for x in env[program]])
+            sampling_prob = [x[1]/total_errors for x in env[program]]
+            index = np.random.choice(len(env[program]), p=sampling_prob)
+            result = env[program][index][0]
+        else:
+            env = self.sampled_env
+            index = np.random.choice(len(env[program]))
+            result = env[program][index]
+
+        return len(env[program]), result
+
     def reset_env(self):
         """Reset the environment. The list are values are draw randomly. The pointers are initialized at position 0
         (at left position of the list).
@@ -492,34 +544,30 @@ class QuickSortListEnv(Environment):
             init_pointers_pos3 = 0
         elif current_task_name == 'PARTITION':
 
-            index = np.random.choice(len(self.sampled_env["PARTITION"]))
-            total_size = len(self.sampled_env["PARTITION"])
+            total_size, env = self.return_sample_state("PARTITION")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = self.sampled_env["PARTITION"][index]
+            init_prog_stack, init_temp_variables = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'PARTITION_UPDATE':
 
-            index = np.random.choice(len(self.sampled_env["PARTITION_UPDATE"]))
-            total_size = len(self.sampled_env["PARTITION_UPDATE"])
+            total_size, env = self.return_sample_state("PARTITION_UPDATE")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = self.sampled_env["PARTITION_UPDATE"][index]
+            init_prog_stack, init_temp_variables = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'SAVE_LOAD_PARTITION':
 
-            index = np.random.choice(len(self.sampled_env["SAVE_LOAD_PARTITION"]))
-            total_size = len(self.sampled_env["SAVE_LOAD_PARTITION"])
+            total_size, env = self.return_sample_state("SAVE_LOAD_PARTITION")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = self.sampled_env["SAVE_LOAD_PARTITION"][index]
+            init_prog_stack, init_temp_variables = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT_UPDATE':
 
-            index = np.random.choice(len(self.sampled_env["QUICKSORT_UPDATE"]))
-            total_size = len(self.sampled_env["QUICKSORT_UPDATE"])
+            total_size, env = self.return_sample_state("QUICKSORT_UPDATE")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = self.sampled_env["QUICKSORT_UPDATE"][index]
+            init_prog_stack, init_temp_variables = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT':
@@ -713,3 +761,10 @@ class QuickSortListEnv(Environment):
         bool &= (state1[4] == state2[4])
         bool &= (state1[5] == state2[5])
         return bool
+
+    def get_state_clone(self, state):
+        """
+        Get a clone of the current state
+        :return:
+        """
+        return np.copy(state[0]), state[1], state[2], state[3], state[4].copy(), state[5].copy()

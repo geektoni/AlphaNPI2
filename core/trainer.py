@@ -71,7 +71,7 @@ class Trainer():
             res = mcts.sample_execution_trace()
             observations, prog_indices, previous_actions_indices, policy_labels, lstm_states, _, _, \
                 task_reward, clean_sub_execution, rewards, programs_failed_indices, \
-                programs_failed_initstates = res
+                programs_failed_initstates, programs_failed_states_indices = res
 
             # record trace and store it in buffer only if no problem in sub-programs execution
             if clean_sub_execution:

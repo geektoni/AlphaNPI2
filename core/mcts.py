@@ -454,6 +454,7 @@ class MCTS:
                 task_reward -= self.recursive_penalty
         else:
             self.programs_failed_states_indices[self.task_index].append((env_index, env_total_size))
+            self.env.update_failing_envs(self.env_init_state, self.env.get_program_from_index(self.task_index))
             task_reward = -1
 
         # Replace None rewards by the true final task reward
