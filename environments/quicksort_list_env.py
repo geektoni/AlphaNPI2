@@ -39,7 +39,7 @@ class QuickSortListEnv(Environment):
     The episode stops when the list is sorted.
     """
 
-    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True, expose_stack=False):
+    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True, expose_stack=False, validation_mode=False):
 
         assert length > 0, "length must be a positive integer"
         self.length = length
@@ -55,6 +55,7 @@ class QuickSortListEnv(Environment):
         self.expose_stack = expose_stack
         self.sample_from_errors_prob = 0.3
         self.max_failed_envs = 100
+        self.validation_mode = validation_mode
 
         self.failed_executions_env = OrderedDict(sorted({
             "PARTITION_UPDATE": [],
@@ -498,7 +499,9 @@ class QuickSortListEnv(Environment):
         :param program: program we are resetting
         :return: the dictionary
         """
-        if np.random.random_sample() < self.sample_from_errors_prob and len(self.failed_executions_env[program]) > 0:
+        if np.random.random_sample() < self.sample_from_errors_prob \
+                and len(self.failed_executions_env[program]) > 0 \
+                and not self.validation_mode:
             env = self.failed_executions_env
             total_errors = sum([x[1] for x in env[program]])
             sampling_prob = [x[1]/total_errors for x in env[program]]

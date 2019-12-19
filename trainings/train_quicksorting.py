@@ -162,7 +162,7 @@ if __name__ == "__main__":
         for idx in curriculum_scheduler.get_tasks_of_maximum_level():
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
-            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack)
+            env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack, validation_mode=True)
             max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
