@@ -142,19 +142,28 @@ if __name__ == "__main__":
     min_length = args.min_length
     max_length = args.max_length
     validation_length = args.validation_length
+    failed_executions_envs = None
+
     # Start training
     for iteration in range(conf.num_iterations):
-
         # play one iteration
         task_index = curriculum_scheduler.get_next_task_index()
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack)
         max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
+
+        # Restore the previous failed executions
+        if failed_executions_envs != None:
+            env.failed_executions_env = failed_executions_envs
+
         trainer.env = env
         trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
         trainer.mcts_test_params['max_depth_dict'] = max_depth_dict
         trainer.play_iteration(task_index)
+
+        # Save the failed execution env
+        failed_executions_envs = env.failed_executions_env
 
         # perform validation
         if verbose:

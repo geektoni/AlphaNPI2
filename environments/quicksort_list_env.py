@@ -478,20 +478,28 @@ class QuickSortListEnv(Environment):
         :return:
         """
 
+        # Do not update if we are running in validation mode
+        if self.validation_mode:
+            return
+
         if len(self.failed_executions_env[program]) == 0:
-            self.failed_executions_env[program].append((self.get_state_clone(state), 1))
+            self.failed_executions_env[program].append((self.get_state_clone(state), 1, 1000))
         else:
             found = False
             for i in range(len(self.failed_executions_env[program])):
                 if self.compare_state(state, self.failed_executions_env[program][i][0]):
-                    self.failed_executions_env[program][i] = (self.failed_executions_env[program][i][0],self.failed_executions_env[program][i][1]+1)
+                    self.failed_executions_env[program][i] = (self.failed_executions_env[program][i][0], self.failed_executions_env[program][i][1]+1, self.failed_executions_env[program][i][2]+1)
                     found = True
                     break
+                else:
+                    self.failed_executions_env[program][i] = (self.failed_executions_env[program][i][0], self.failed_executions_env[program][i][1], self.failed_executions_env[program][i][2]-1)
             if not found:
-                # Remove the first failed program from the list to make space for the new one
+                # Remove the failed program with the least life from the list to make space for the new one
                 if len(self.failed_executions_env[program]) >= self.max_failed_envs:
-                    del self.failed_executions_env[0]
-                self.failed_executions_env[program].append((self.get_state_clone(state), 1))
+                    self.failed_executions_env[program].sort(key=lambda t: t[2])
+                    print(self.failed_executions_env[program][0])
+                    del self.failed_executions_env[program][0]
+                self.failed_executions_env[program].append((self.get_state_clone(state), 1, 1000))
 
     def return_sample_state(self, program):
         """
@@ -507,6 +515,10 @@ class QuickSortListEnv(Environment):
             sampling_prob = [x[1]/total_errors for x in env[program]]
             index = np.random.choice(len(env[program]), p=sampling_prob)
             result = env[program][index][0]
+
+            # This accounts for the fact that we are maybe sampling from a state
+            # which is smaller than our current scratchpad length.
+            self.length = len(result[0])
         else:
             env = self.sampled_env
             index = np.random.choice(len(env[program]))
