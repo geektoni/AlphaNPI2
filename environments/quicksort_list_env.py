@@ -39,7 +39,7 @@ class QuickSortListEnv(Environment):
     The episode stops when the list is sorted.
     """
 
-    def __init__(self, length=10, max_length=10, encoding_dim=32, hierarchy=True, expose_stack=False, validation_mode=False):
+    def __init__(self, length=10, max_length=10, encoding_dim=32, sample_from_errors_prob=0.3, hierarchy=True, expose_stack=False, validation_mode=False):
 
         assert length > 0, "length must be a positive integer"
         self.length = length
@@ -53,7 +53,7 @@ class QuickSortListEnv(Environment):
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
         self.expose_stack = expose_stack
-        self.sample_from_errors_prob = 0.3
+        self.sample_from_errors_prob = sample_from_errors_prob
         self.max_failed_envs = 100
         self.validation_mode = validation_mode
 
