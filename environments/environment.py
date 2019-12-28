@@ -249,3 +249,13 @@ class Environment(ABC):
             String describes the environment in a more human-friendly way
         """
         pass
+
+    @abstractmethod
+    def update_failing_envs(self, state, program_name):
+        """
+        Update failing environments.
+        :param state: current failed state
+        :param program_name: current failed program
+        :return:
+        """
+        pass

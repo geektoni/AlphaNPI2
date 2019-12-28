@@ -322,6 +322,7 @@ class ListEnv(Environment):
         self.p1_pos = init_pointers_pos1
         self.p2_pos = init_pointers_pos2
         self.has_been_reset = True
+        return 0,0
 
     def get_state(self):
         """Returns the current state.
@@ -417,3 +418,7 @@ class ListEnv(Environment):
         bool &= (state1[1] == state2[1])
         bool &= (state1[2] == state2[2])
         return bool
+
+    # This method is not useful in this case
+    def update_failing_envs(self, state, program_name):
+        pass
