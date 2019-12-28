@@ -123,7 +123,12 @@ if __name__ == "__main__":
 
     # Prepare mcts params
     length = 5
-    max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
+
+    if args.without_partition_update:
+        max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
+    else:
+        max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
+
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
@@ -158,7 +163,11 @@ if __name__ == "__main__":
         length = np.random.randint(min_length, max_length+1)
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
                                sample_from_errors_prob=sample_error_prob, without_partition_update=args.without_partition_update)
-        max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
+
+        if args.without_partition_update:
+            max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
+        else:
+            max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
         # Restore the previous failed executions
         if failed_executions_envs != None:
@@ -180,7 +189,12 @@ if __name__ == "__main__":
             length = validation_length
             env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
                                    validation_mode=True, without_partition_update=args.without_partition_update)
-            max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
+
+            if args.without_partition_update:
+                max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
+            else:
+                max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
+
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
             trainer.mcts_test_params['max_depth_dict'] = max_depth_dict

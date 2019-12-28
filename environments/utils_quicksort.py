@@ -69,7 +69,8 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
     """
     (total of 2*(n-1)+2)
     from 0 to n-1:
-        PARTITION_UPDATE
+        PARTITION_UPDATE  *OR*  SWAP_PIVOT
+                                PTR_1_RIGHT
         PTR_3_RIGHT
     SWAP
     STOP
