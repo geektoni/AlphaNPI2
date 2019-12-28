@@ -111,6 +111,9 @@ class CurriculumScheduler():
         # Determine if the maximum_level should be increased or not
         possible_indices = self.get_tasks_from_max_level()
         possible_relative_indices = [self.relative_indices[idx] for idx in possible_indices]
-        min_reward = np.min(self.tasks_average_rewards[possible_relative_indices])
-        if min_reward >= self.reward_threshold:
-            self.maximum_level += 1
+
+        # Avoid incrementing the action level if we already reached the maximum.
+        if len(possible_relative_indices) != 0:
+            min_reward = np.min(self.tasks_average_rewards[possible_relative_indices])
+            if min_reward >= self.reward_threshold:
+                self.maximum_level += 1

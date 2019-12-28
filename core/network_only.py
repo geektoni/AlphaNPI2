@@ -18,7 +18,7 @@ class NetworkOnly:
         depth = 0
 
         # Start new task and initialize LSTM
-        observation = self.env.start_task(task_index)
+        observation, _, _ = self.env.start_task(task_index)
         h, c = self.policy.init_tensors()
 
         while self.clean_sub_executions and depth <= max_depth:

@@ -497,7 +497,6 @@ class QuickSortListEnv(Environment):
                 # Remove the failed program with the least life from the list to make space for the new one
                 if len(self.failed_executions_env[program]) >= self.max_failed_envs:
                     self.failed_executions_env[program].sort(key=lambda t: t[2])
-                    print(self.failed_executions_env[program][0])
                     del self.failed_executions_env[program][0]
                 self.failed_executions_env[program].append((self.get_state_clone(state), 1, 1000))
 
