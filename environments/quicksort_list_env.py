@@ -39,7 +39,7 @@ class QuickSortListEnv(Environment):
     The episode stops when the list is sorted.
     """
 
-    def __init__(self, length=10, max_length=10, encoding_dim=32, sample_from_errors_prob=0.3, hierarchy=True, expose_stack=False, validation_mode=False):
+    def __init__(self, length=10, max_length=10, encoding_dim=32, sample_from_errors_prob=0.3, hierarchy=True, expose_stack=False, validation_mode=False, without_partition_update=False):
 
         assert length > 0, "length must be a positive integer"
         self.length = length
@@ -142,6 +142,71 @@ class QuickSortListEnv(Environment):
                                                                 'SAVE_LOAD_PARTITION': 'SEQUENTIAL',
                                                                 'QUICKSORT_UPDATE': 'SEQUENTIAL',
                                                                 'QUICKSORT': 'WHILE'}.items()))
+
+            if without_partition_update:
+                self.programs_library = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
+                                                            'PTR_1_LEFT': {'level': 0, 'recursive': False},
+                                                            'PTR_2_LEFT': {'level': 0, 'recursive': False},
+                                                            'PTR_3_LEFT': {'level': 0, 'recursive': False},
+                                                            'PTR_1_RIGHT': {'level': 0, 'recursive': False},
+                                                            'PTR_2_RIGHT': {'level': 0, 'recursive': False},
+                                                            'PTR_3_RIGHT': {'level': 0, 'recursive': False},
+                                                            'SWAP': {'level': 0, 'recursive': False},
+                                                            'SWAP_PIVOT': {'level': 0, 'recursive': False},
+                                                            'PUSH': {'level': 0, 'recursive': False},
+                                                            'POP': {'level': 0, 'recursive': False},
+                                                            'SAVE_PTR_1': {'level': 0, 'recursive': False},
+                                                            'LOAD_PTR_1': {'level': 0, 'recursive': False},
+                                                            'PARTITION': {'level': 1, 'recursive': False},
+                                                            'SAVE_LOAD_PARTITION': {'level': 2, 'recursive': False},
+                                                            'QUICKSORT_UPDATE': {'level': 3, 'recursive': False},
+                                                            'QUICKSORT': {'level': 4, 'recursive': False}}.items()))
+                for idx, key in enumerate(sorted(list(self.programs_library.keys()))):
+                    self.programs_library[key]['index'] = idx
+
+                self.prog_to_func = OrderedDict(sorted({'STOP': self._stop,
+                                                        'PTR_1_LEFT': self._ptr_1_left,
+                                                        'PTR_2_LEFT': self._ptr_2_left,
+                                                        'PTR_3_LEFT': self._ptr_3_left,
+                                                        'PTR_1_RIGHT': self._ptr_1_right,
+                                                        'PTR_2_RIGHT': self._ptr_2_right,
+                                                        'PTR_3_RIGHT': self._ptr_3_right,
+                                                        'SWAP': self._swap,
+                                                        'SWAP_PIVOT': self._swap_pivot,
+                                                        'PUSH': self._push,
+                                                        'POP': self._pop,
+                                                        'SAVE_PTR_1': self._save_ptr_1,
+                                                        'LOAD_PTR_1': self._load_ptr_1}.items()))
+
+                self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
+                                                                'PARTITION': self._partition_precondition,
+                                                                'SAVE_LOAD_PARTITION': self._save_load_partition_precondition,
+                                                                'QUICKSORT_UPDATE': self._quicksort_update_precondition,
+                                                                'QUICKSORT': self._quicksort_precondition,
+                                                                'PTR_1_LEFT': self._ptr_1_left_precondition,
+                                                                'PTR_2_LEFT': self._ptr_2_left_precondition,
+                                                                'PTR_3_LEFT': self._ptr_3_left_precondition,
+                                                                'PTR_1_RIGHT': self._ptr_1_right_precondition,
+                                                                'PTR_2_RIGHT': self._ptr_2_right_precondition,
+                                                                'PTR_3_RIGHT': self._ptr_3_right_precondition,
+                                                                'SWAP': self._swap_precondition,
+                                                                'SWAP_PIVOT': self._swap_pivot_precondition,
+                                                                'PUSH': self._push_precondition,
+                                                                'POP': self._pop_precondition,
+                                                                'SAVE_PTR_1': self._save_ptr_1_precondition,
+                                                                'LOAD_PTR_1': self._load_ptr_1_precondition}.items()))
+
+                self.prog_to_postcondition = OrderedDict(sorted({
+                                                                    'PARTITION': self._partition_postcondition,
+                                                                    'SAVE_LOAD_PARTITION': self._save_load_partition_postcondition,
+                                                                    'QUICKSORT_UPDATE': self._quicksort_update_postcondition,
+                                                                    'QUICKSORT': self._quicksort_postcondition}.items()))
+
+                self.prog_to_structural_condition = OrderedDict(sorted({
+                                                                           'PARTITION': 'WHILE',
+                                                                           'SAVE_LOAD_PARTITION': 'SEQUENTIAL',
+                                                                           'QUICKSORT_UPDATE': 'SEQUENTIAL',
+                                                                           'QUICKSORT': 'WHILE'}.items()))
 
         else:
             # In no hierarchy mode, the only non-zero program is Bubblesort

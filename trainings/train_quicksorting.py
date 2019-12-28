@@ -32,6 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--level-0-penalty', help="Custom penalty value for the level 0 actions", default=1.0, type=float)
     parser.add_argument('--expose-stack', help="When observing the environment, simply expose the firs two element of the stack", default=False, action='store_true')
     parser.add_argument('--sample-error-prob', help="Probability of sampling error envs when doing training", default=0.3, type=float)
+    parser.add_argument('--without-partition-update', help="Train everything without the partition update program", default=False, action="store_true")
     args = parser.parse_args()
 
     # Get arguments
@@ -70,17 +71,17 @@ if __name__ == "__main__":
     ts = time.localtime(time.time())
     date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
     # Path to save policy
-    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
+    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
-                                                                           sample_error_prob)
+                                                                           sample_error_prob, args.without_partition_update)
     # Path to save results
-    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
+    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
-                                                                              sample_error_prob)
+                                                                              sample_error_prob, args.without_partition_update)
     # Path to tensorboard
-    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
+    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
-                                                                 sample_error_prob)
+                                                                 sample_error_prob, args.without_partition_update)
 
     # Instantiate tensorboard writer
     if tensorboard:
@@ -95,7 +96,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
 
     # Load environment constants
-    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack, sample_from_errors_prob=sample_error_prob)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack, sample_from_errors_prob=sample_error_prob, without_partition_update=args.without_partition_update)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -156,7 +157,7 @@ if __name__ == "__main__":
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
-                               sample_from_errors_prob=sample_error_prob)
+                               sample_from_errors_prob=sample_error_prob, without_partition_update=args.without_partition_update)
         max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
 
         # Restore the previous failed executions
@@ -178,7 +179,7 @@ if __name__ == "__main__":
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
             env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
-                                   validation_mode=True)
+                                   validation_mode=True, without_partition_update=args.without_partition_update)
             max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
             trainer.env = env
             trainer.mcts_train_params['max_depth_dict'] = max_depth_dict
