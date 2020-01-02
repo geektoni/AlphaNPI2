@@ -33,6 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--expose-stack', help="When observing the environment, simply expose the firs two element of the stack", default=False, action='store_true')
     parser.add_argument('--sample-error-prob', help="Probability of sampling error envs when doing training", default=0.3, type=float)
     parser.add_argument('--without-partition-update', help="Train everything without the partition update program", default=False, action="store_true")
+    parser.add_argument('--reduced-operation-set', help="Train everything with a reduced set of operations", default=False, action="store_true")
     args = parser.parse_args()
 
     # Get arguments
@@ -96,7 +97,10 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
 
     # Load environment constants
-    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack, sample_from_errors_prob=sample_error_prob, without_partition_update=args.without_partition_update)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
+                               sample_from_errors_prob=sample_error_prob,
+                               without_partition_update=args.without_partition_update,
+                               reduced_set=args.reduced_operation_set)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -126,6 +130,8 @@ if __name__ == "__main__":
 
     if args.without_partition_update:
         max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
+    elif args.reduced_operation_set:
+        max_depth_dict = {1: 3+ 3*(length-1)+1, 2: 4, 3: length + 2}
     else:
         max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
@@ -162,7 +168,9 @@ if __name__ == "__main__":
         task_level = env_tmp.get_program_level_from_index(task_index)
         length = np.random.randint(min_length, max_length+1)
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
-                               sample_from_errors_prob=sample_error_prob, without_partition_update=args.without_partition_update)
+                               sample_from_errors_prob=sample_error_prob,
+                               without_partition_update=args.without_partition_update,
+                               reduced_set=args.reduced_operation_set)
 
         if args.without_partition_update:
             max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
@@ -188,10 +196,14 @@ if __name__ == "__main__":
             task_level = env_tmp.get_program_level_from_index(idx)
             length = validation_length
             env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
-                                   validation_mode=True, without_partition_update=args.without_partition_update)
+                                   validation_mode=True,
+                                   without_partition_update=args.without_partition_update,
+                                   reduced_set=args.reduced_operation_set)
 
             if args.without_partition_update:
                 max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
+            elif args.reduced_operation_set:
+                max_depth_dict = {1: 3 + 3 * (length - 1) + 1, 2: 4, 3: length + 2}
             else:
                 max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 

@@ -2,6 +2,62 @@ import numpy as np
 
 from collections import OrderedDict
 
+programs_library = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
+                                                        'PTR_1_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_1_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_RIGHT': {'level': 0, 'recursive': False},
+                                                        'SWAP': {'level': 0, 'recursive': False},
+                                                        'SWAP_PIVOT': {'level': 0, 'recursive': False},
+                                                        'PUSH': {'level': 0, 'recursive': False},
+                                                        'POP': {'level': 0, 'recursive': False},
+                                                        'SAVE_PTR_1': {'level': 0, 'recursive': False},
+                                                        'LOAD_PTR_1': {'level': 0, 'recursive': False},
+                                                        'PARTITION_UPDATE': {'level': 1, 'recursive': False},
+                                                        'PARTITION': {'level': 2, 'recursive': False},
+                                                        'SAVE_LOAD_PARTITION': {'level': 3, 'recursive': False},
+                                                        'QUICKSORT_UPDATE': {'level': 4, 'recursive': False},
+                                                        'QUICKSORT': {'level': 5, 'recursive': False}}.items()))
+
+programs_library_without_partition_update = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
+                                                        'PTR_1_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_1_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_RIGHT': {'level': 0, 'recursive': False},
+                                                        'SWAP': {'level': 0, 'recursive': False},
+                                                        'SWAP_PIVOT': {'level': 0, 'recursive': False},
+                                                        'PUSH': {'level': 0, 'recursive': False},
+                                                        'POP': {'level': 0, 'recursive': False},
+                                                        'SAVE_PTR_1': {'level': 0, 'recursive': False},
+                                                        'LOAD_PTR_1': {'level': 0, 'recursive': False},
+                                                        'PARTITION_UPDATE': {'level': 1, 'recursive': False},
+                                                        'PARTITION': {'level': 2, 'recursive': False},
+                                                        'SAVE_LOAD_PARTITION': {'level': 3, 'recursive': False},
+                                                        'QUICKSORT_UPDATE': {'level': 4, 'recursive': False},
+                                                        'QUICKSORT': {'level': 5, 'recursive': False}}.items()))
+
+programs_library_reduced = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
+                                                        'PTR_1_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_1_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_RIGHT': {'level': 0, 'recursive': False},
+                                                        'SWAP': {'level': 0, 'recursive': False},
+                                                        'SWAP_PIVOT': {'level': 0, 'recursive': False},
+                                                        'PUSH': {'level': 0, 'recursive': False},
+                                                        'POP': {'level': 0, 'recursive': False},
+                                                        'SAVE_PTR_1': {'level': 0, 'recursive': False},
+                                                        'LOAD_PTR_1': {'level': 0, 'recursive': False},
+                                                        'SAVE_LOAD_PARTITION': {'level': 1, 'recursive': False},
+                                                        'QUICKSORT_UPDATE': {'level': 2, 'recursive': False},
+                                                        'QUICKSORT': {'level': 3, 'recursive': False}}.items()))
+
+
 def assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp):
     assert init_pointers_pos3 < init_pointers_pos2 \
            and init_pointers_pos1 < init_pointers_pos2 \
@@ -101,7 +157,7 @@ def partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_poin
 
 def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, sampled_environment={}, sample=True):
 
-    """ (4 operations)
+    """ (4 operations) or (3+ 3*(n-1)+1)
     SAVE_PTR1
     PARTITION
     LOAD_PTR1
