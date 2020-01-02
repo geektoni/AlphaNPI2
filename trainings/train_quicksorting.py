@@ -34,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--sample-error-prob', help="Probability of sampling error envs when doing training", default=0.3, type=float)
     parser.add_argument('--without-partition-update', help="Train everything without the partition update program", default=False, action="store_true")
     parser.add_argument('--reduced-operation-set', help="Train everything with a reduced set of operations", default=False, action="store_true")
+    parser.add_argument('--keep-training', help="Keep training even if we reach 'perfection' on all the task", default=False, action="store_true")
     args = parser.parse_args()
 
     # Get arguments
@@ -72,17 +73,23 @@ if __name__ == "__main__":
     ts = time.localtime(time.time())
     date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
     # Path to save policy
-    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
+    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
-                                                                           sample_error_prob, args.without_partition_update)
+                                                                           sample_error_prob, args.without_partition_update,
+                                                                                    args.reduced_operation_set,
+                                                                                    args.keep_training)
     # Path to save results
-    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
+    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
-                                                                              sample_error_prob, args.without_partition_update)
+                                                                              sample_error_prob, args.without_partition_update,
+                                                                                       args.reduced_operation_set,
+                                                                                       args.keep_training)
     # Path to tensorboard
-    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
+    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
-                                                                 sample_error_prob, args.without_partition_update)
+                                                                 sample_error_prob, args.without_partition_update,
+                                                                          args.reduced_operation_set,
+                                                                          args.keep_training)
 
     # Instantiate tensorboard writer
     if tensorboard:
@@ -239,7 +246,11 @@ if __name__ == "__main__":
 
         # If succeed on al tasks, go directly to next list length
         if curriculum_scheduler.maximum_level > env.get_maximum_level():
-            break
+            if not args.keep_training:
+                break
+            else:
+                # keep on training
+                curriculum_scheduler.maximum_level = env.get_maximum_level()
 
         # Save policy
         if save_model:
