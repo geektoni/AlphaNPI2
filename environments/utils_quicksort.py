@@ -34,11 +34,10 @@ programs_library_without_partition_update = OrderedDict(sorted({'STOP': {'level'
                                                         'POP': {'level': 0, 'recursive': False},
                                                         'SAVE_PTR_1': {'level': 0, 'recursive': False},
                                                         'LOAD_PTR_1': {'level': 0, 'recursive': False},
-                                                        'PARTITION_UPDATE': {'level': 1, 'recursive': False},
-                                                        'PARTITION': {'level': 2, 'recursive': False},
-                                                        'SAVE_LOAD_PARTITION': {'level': 3, 'recursive': False},
-                                                        'QUICKSORT_UPDATE': {'level': 4, 'recursive': False},
-                                                        'QUICKSORT': {'level': 5, 'recursive': False}}.items()))
+                                                        'PARTITION': {'level': 1, 'recursive': False},
+                                                        'SAVE_LOAD_PARTITION': {'level': 2, 'recursive': False},
+                                                        'QUICKSORT_UPDATE': {'level': 3, 'recursive': False},
+                                                        'QUICKSORT': {'level': 4, 'recursive': False}}.items()))
 
 programs_library_reduced = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
                                                         'PTR_1_LEFT': {'level': 0, 'recursive': False},
