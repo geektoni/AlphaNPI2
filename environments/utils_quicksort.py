@@ -52,7 +52,7 @@ programs_library_reduced = OrderedDict(sorted({'STOP': {'level': -1, 'recursive'
                                                         'POP': {'level': 0, 'recursive': False},
                                                         'SAVE_PTR_1': {'level': 0, 'recursive': False},
                                                         'LOAD_PTR_1': {'level': 0, 'recursive': False},
-                                                        'SAVE_LOAD_PARTITION': {'level': 1, 'recursive': False},
+                                                        'PARTITION': {'level': 1, 'recursive': False},
                                                         'QUICKSORT_UPDATE': {'level': 2, 'recursive': False},
                                                         'QUICKSORT': {'level': 3, 'recursive': False}}.items()))
 
@@ -193,7 +193,7 @@ def save_load_partition(scratchpad_ints, init_pointers_pos1, init_pointers_pos2,
 
 def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, init_prog_stack, init_temp_variables, sampled_environment={}, sample=True):
 
-    """ (4 operations)
+    """ (4 operations) or 7 (if we do not use the save load partition)
     POP
     SAVE_LOAD_PARTITION
     PUSH

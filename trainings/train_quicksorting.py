@@ -138,7 +138,7 @@ if __name__ == "__main__":
     if args.without_partition_update:
         max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
     elif args.reduced_operation_set:
-        max_depth_dict = {1: 3+ 3*(length-1)+1, 2: 4, 3: length + 2}
+        max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
     else:
         max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
@@ -181,6 +181,8 @@ if __name__ == "__main__":
 
         if args.without_partition_update:
             max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
+        elif args.reduced_operation_set:
+            max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
         else:
             max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
@@ -210,7 +212,7 @@ if __name__ == "__main__":
             if args.without_partition_update:
                 max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
             elif args.reduced_operation_set:
-                max_depth_dict = {1: 3 + 3 * (length - 1) + 1, 2: 4, 3: length + 2}
+                max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
             else:
                 max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
