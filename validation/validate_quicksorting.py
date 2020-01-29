@@ -50,7 +50,7 @@ if __name__ == "__main__":
     values = filename.split("-")
 
     date = values[0]
-    time = values[1]
+    time_ = values[1]
     seed = values[2]
     str_c = values[3].lower() == "true"
     pen_level_0 = values[4].lower() == "true"
