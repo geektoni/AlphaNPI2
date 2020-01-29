@@ -23,20 +23,20 @@ export PYTHONPATH=../
 if [ ${command_set} != "none" ]; then
   if [ ${stack} != "none" ]; then
     python3 train_quicksorting.py --seed=${seed} --tensorboard --verbose --save-model --save-results \
-      --num-cpus 10 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors} \
+      --num-cpus 15 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors} \
       ${command_set} ${stack}
   else
     python3 train_quicksorting.py --seed=${seed} --tensorboard --verbose --save-model --save-results \
-      --num-cpus 10 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors} \
+      --num-cpus 15 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors} \
       ${command_set}
   fi
 else
   if [ ${stack} != "none" ]; then
     python3 train_quicksorting.py --seed=${seed} --tensorboard --verbose --save-model --save-results \
-      --num-cpus 10 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors}\
+      --num-cpus 15 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors}\
       ${stack}
   else
     python3 train_quicksorting.py --seed=${seed} --tensorboard --verbose --save-model --save-results \
-      --num-cpus 10 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors}
+      --num-cpus 15 --tb-base-dir ${output_dir_tb} --penalize-level-0 --keep-training --sample-error-prob ${train_errors}
   fi
 fi
