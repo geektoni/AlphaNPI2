@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export command_set=""
+export command_set="none"
 if [ ${1} == "complete" ]; then
   export command_set=""
 elif [ ${1} == "without-partition-update" ]; then
@@ -13,7 +13,7 @@ export stack=""
 if [ ${2} == "True" ]; then
   export stack="--expose-stack"
 else
-  export stack=""
+  export stack="none"
 fi
 
 export train_errors=""

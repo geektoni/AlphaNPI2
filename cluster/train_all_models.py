@@ -20,3 +20,4 @@ for c in configs:
             # execute the command
             process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
+            print(output)
