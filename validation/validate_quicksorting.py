@@ -8,6 +8,10 @@ from core.mcts import MCTS
 import numpy as np
 import time
 
+from tqdm import tqdm
+
+import os
+
 if __name__ == "__main__":
 
     # Path to load policy
@@ -24,6 +28,7 @@ if __name__ == "__main__":
     parser.add_argument('--min-length', help='Minimum size of the list we want to order', default=2, type=int)
     parser.add_argument('--max-length', help='Max size of the list we want to order', default=7, type=int)
     parser.add_argument('--validation-length', help='Size of the validation lists we want to order', default=7, type=int)
+    parser.add_argument('--operation', help="Operation we want to test", default="QUICKSORT", type=str)
     args = parser.parse_args()
 
     # Get arguments
@@ -40,15 +45,34 @@ if __name__ == "__main__":
     np.random.seed(seed)
     torch.manual_seed(seed)
 
+    # Obtain the various configuration options from the name.
+    filename = os.path.split(load_path)[1]
+    values = filename.split("-")
+
+    date = values[0]
+    time = values[1]
+    seed = values[2]
+    str_c = values[3].lower() == "true"
+    pen_level_0 = values[4].lower() == "true"
+    leve_0_pen = float(values[5])
+    expose_stack = values[6].lower() == "true"
+    samp_err_poss = float(values[7])
+    without_p_upd = values[8].lower() == "true"
+    reduced_op_set = values[9].lower() == "true"
+    keep_training = values[10].split(".")[0].lower() == "true"
+
+
     if save_results:
         # get date and time
         ts = time.localtime(time.time())
         date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
-        results_save_path = '../results/validation_list_npi_{}-{}.txt'.format(date_time, seed)
+        results_save_path = '../results/validation_list_npi_{}-{}-{}-{}-{}-{}.txt'.format(date_time, args.operation, samp_err_poss, reduced_op_set, without_p_upd, seed)
         results_file = open(results_save_path, 'w')
 
     # Load environment constants
-    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=True)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
+                               without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
+                               reduced_set=reduced_op_set)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -70,25 +94,36 @@ if __name__ == "__main__":
     if save_results:
         results_file.write('Validation on model: {}'.format(load_path) + ' \n')
 
-    for len in [8,9,10,12,13]:
+    for len in [5, 10, 20, 60, 100]:
+
+        print("** Start validation for len = {}".format(len))
 
         mcts_rewards_normalized = []
         mcts_rewards = []
         network_only_rewards = []
 
-        max_depth_dict = {1: 3, 2: 2 * (len - 1) + 2, 3: 4, 4: 4, 5: len + 2}
+        if without_p_upd:
+            max_depth_dict = {1: 3 * (len - 1) + 2, 2: 4, 3: 4, 4: len + 2}
+        elif reduced_op_set:
+            max_depth_dict = {1: 3 * (len - 1) + 2, 2: 6, 3: len + 2}
+        else:
+            max_depth_dict = {1: 3, 2: 2 * (len - 1) + 2, 3: 4, 4: 4, 5: len + 2}
+
         mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                             'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                             'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
-                            'gamma': conf.gamma, "penalize_level_0": False, 'use_structural_constraint': False}
+                            'gamma': conf.gamma, "penalize_level_0": pen_level_0, 'use_structural_constraint': str_c,
+                            'verbose': False}
 
-        for _ in range(100):
+        for _ in tqdm(range(100)):
 
-            env = QuickSortListEnv(length=len, encoding_dim=conf.encoding_dim, expose_stack=True)
-            bubblesort_index = env.programs_library['QUICKSORT']['index']
+            env = QuickSortListEnv(length=len, encoding_dim=conf.encoding_dim,
+                                   expose_stack=expose_stack, without_partition_update=without_p_upd,
+                                   sample_from_errors_prob=samp_err_poss, reduced_set=reduced_op_set)
+            operation_index = env.programs_library[args.operation]['index']
 
             # Test with mcts
-            mcts = MCTS(policy, env, bubblesort_index, **mcts_test_params)
+            mcts = MCTS(policy, env, operation_index, **mcts_test_params)
             res = mcts.sample_execution_trace()
             mcts_reward = res[7]
             mcts_rewards.append(mcts_reward)
@@ -99,7 +134,7 @@ if __name__ == "__main__":
 
             # Test with network alone
             network_only = NetworkOnly(policy, env, max_depth_dict)
-            netonly_reward, _ = network_only.play(bubblesort_index)
+            netonly_reward, _ = network_only.play(operation_index)
             network_only_rewards.append(netonly_reward)
 
         mcts_rewards_normalized_mean = np.mean(np.array(mcts_rewards_normalized))
@@ -119,6 +154,3 @@ if __name__ == "__main__":
 
     if save_results:
         results_file.close()
-
-
-
