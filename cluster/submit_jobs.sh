@@ -2,7 +2,7 @@
 
 export command_set="none"
 if [ ${1} == "complete" ]; then
-  export command_set=""
+  export command_set="none"
 elif [ ${1} == "without-partition-update" ]; then
   export command_set="--without-partition-update"
 else

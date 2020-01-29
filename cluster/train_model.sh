@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l select=3:ncpus=10:mem=5GB
+#PBS -l select=3:ncpus=15:mem=5GB
 #PBS -l walltime=48:0:0
 #PBS -q common_cpuQ
 #PBS -M giovanni.detoni@studenti.unitn.it
