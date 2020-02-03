@@ -21,6 +21,7 @@ for f in glob.glob(output_dir+"/*.pth"):
         operations="no-partition"
 
     # Generate the command
+    f = f.replace("\n", "")
     command = "bash submit_validate.sh {} {}".format(
         f, operations
         )
