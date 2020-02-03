@@ -20,10 +20,13 @@ for f in glob.glob(output_dir+"/*.pth"):
     elif without_partition:
         operations="no-partition"
 
+    # Job name
+    name="{}-{}-{}-{}".format(expose_stack, without_partition, reduced, operations)
+
     # Generate the command
     f = f.replace("\n", "")
-    command = "bash submit_validate.sh {} {}".format(
-        f, operations
+    command = "bash submit_validate.sh {} {} {}".format(
+        f, operations, name
         )
     print(command)
 
