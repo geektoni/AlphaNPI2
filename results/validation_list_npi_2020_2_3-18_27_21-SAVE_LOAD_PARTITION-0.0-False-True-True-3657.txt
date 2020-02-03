@@ -1,0 +1,5 @@
+Validation on model: ../models/list_npi_2020_1_30-9_17_26-3657-False-False-1.0-True-0.0-True-False-True.pth 
+Length: 5, mcts mean reward: 0.7959080373999998, mcts mean normalized reward: 0.94, network only mean reward: 0.94 
+Length: 20, mcts mean reward: 0.3671345025, mcts mean normalized reward: 0.71, network only mean reward: 0.64 
+Length: 60, mcts mean reward: 0.3117145757999999, mcts mean normalized reward: 0.68, network only mean reward: 0.6 
+Length: 100, mcts mean reward: 0.22254982669999998, mcts mean normalized reward: 0.63, network only mean reward: 0.7 
