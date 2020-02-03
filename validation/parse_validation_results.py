@@ -12,9 +12,6 @@ if __name__ == "__main__":
     # For each file, parse its content and generate a table
     for f in result_files:
 
-        # File results
-        results = []
-
         file_name = os.path.basename(f)
 
         file_name_values = file_name.split("-")
@@ -22,8 +19,10 @@ if __name__ == "__main__":
         prob_samb_err = file_name_values[3]
         reduced_operation = file_name_values[4]
         without_partition = file_name_values[5]
+        expose_stack = file_name_values[6]
 
-        results = [operation, prob_samb_err, reduced_operation, without_partition]
+        # File results
+        results = [operation, prob_samb_err, reduced_operation, without_partition, expose_stack]
 
         with open(f, "r") as open_file:
 
@@ -48,6 +47,9 @@ if __name__ == "__main__":
                 total_results.append(results+[len, mcts_norm, net_mean])
 
     # Generate the pandas dataframe
-    df = pd.DataFrame(total_results, columns=["operation", "samp_err", "reduced", "no_part_upd", "len", "mcts", "net"])
+    df = pd.DataFrame(total_results, columns=["operation", "samp_err", "reduced", "no_part_upd", "expose_stack", "len", "mcts", "net"])
     df.sort_values(by=["operation", "len", "samp_err"], inplace=True)
     print(df)
+
+    # Save the results to file
+    df.to_csv("complete_results.csv")

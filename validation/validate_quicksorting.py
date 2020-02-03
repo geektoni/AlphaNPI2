@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # get date and time
         ts = time.localtime(time.time())
         date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
-        results_save_path = '../results/validation_list_npi_{}-{}-{}-{}-{}-{}.txt'.format(date_time, args.operation, samp_err_poss, reduced_op_set, without_p_upd, seed)
+        results_save_path = '../results/validation_list_npi_{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, args.operation, samp_err_poss, reduced_op_set, without_p_upd, expose_stack, seed)
         results_file = open(results_save_path, 'w')
 
     # Load environment constants
