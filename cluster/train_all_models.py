@@ -4,7 +4,7 @@ import random
 # set random seed
 random.seed(42)
 
-configs = ["complete", "without-partition-update", "reduced"]
+configs = ["complete", "without-partition-update", "reduced", "recursive"]
 stack = [True, False]
 train_errors = [True, False]
 output_tb_dir = "./final_results_tb"

@@ -5,6 +5,8 @@ if [ ${1} == "complete" ]; then
   export command_set="none"
 elif [ ${1} == "without-partition-update" ]; then
   export command_set="--without-partition-update"
+elif [ ${1} == "recursive" ]; then
+  export command_set="--recursive-quicksort"
 else
   export command_set="--reduced-operation-set"
 fi
