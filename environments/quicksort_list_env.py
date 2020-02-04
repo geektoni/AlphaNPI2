@@ -39,7 +39,7 @@ class QuickSortListEnv(Environment):
     The episode stops when the list is sorted.
     """
 
-    def __init__(self, length=10, max_length=10, encoding_dim=32, sample_from_errors_prob=0.3, hierarchy=True, expose_stack=False, validation_mode=False, without_partition_update=False, reduced_set=False):
+    def __init__(self, length=10, max_length=10, encoding_dim=32, sample_from_errors_prob=0.3, hierarchy=True, expose_stack=False, validation_mode=False, without_partition_update=False, reduced_set=False, recursive_version=False):
 
         assert length > 0, "length must be a positive integer"
         self.length = length
@@ -50,18 +50,21 @@ class QuickSortListEnv(Environment):
         self.p3_pos = 0
         self.prog_stack = []
         self.temp_variables = [-1]
+        self.counter = length
         self.encoding_dim = encoding_dim
         self.has_been_reset = False
         self.expose_stack = expose_stack
         self.sample_from_errors_prob = sample_from_errors_prob
         self.max_failed_envs = 100
         self.validation_mode = validation_mode
+        self.recursive_version = recursive_version
 
         self.failed_executions_env = OrderedDict(sorted({
             "PARTITION_UPDATE": [],
             "PARTITION": [],
             "SAVE_LOAD_PARTITION": [],
             "QUICKSORT_UPDATE": [],
+            "QUICKSORT_UPDATE_REC": [],
             "QUICKSORT": []
                                                         }.items()))
 
@@ -72,6 +75,8 @@ class QuickSortListEnv(Environment):
                 self.programs_library = programs_library_without_partition_update
             elif reduced_set:
                 self.programs_library = programs_library_reduced
+            elif recursive_version:
+                self.programs_library = programs_library_recursive_quicksort_update
             else:
                 self.programs_library = programs_library
 
@@ -97,6 +102,7 @@ class QuickSortListEnv(Environment):
                                                             'PARTITION': self._partition_precondition,
                                                             'SAVE_LOAD_PARTITION': self._save_load_partition_precondition,
                                                             'QUICKSORT_UPDATE': self._quicksort_update_precondition,
+                                                            'QUICKSORT_UPDATE_REC': self._quick_sort_update_recursive_precondition,
                                                             'QUICKSORT': self._quicksort_precondition,
                                                             'PTR_1_LEFT': self._ptr_1_left_precondition,
                                                             'PTR_2_LEFT': self._ptr_2_left_precondition,
@@ -115,6 +121,7 @@ class QuickSortListEnv(Environment):
                                           'PARTITION_UPDATE': self._partition_update_postcondition,
                                           'PARTITION': self._partition_postcondition,
                                           'SAVE_LOAD_PARTITION': self._save_load_partition_postcondition,
+                                          'QUICKSORT_UPDATE_REC': self._quicksort_update_rec_postcondition,
                                           'QUICKSORT_UPDATE': self._quicksort_update_postcondition,
                                           'QUICKSORT': self._quicksort_postcondition}.items()))
 
@@ -122,6 +129,7 @@ class QuickSortListEnv(Environment):
                                                                 'PARTITION_UPDATE': 'SEQUENTIAL',
                                                                 'PARTITION': 'WHILE',
                                                                 'SAVE_LOAD_PARTITION': 'SEQUENTIAL',
+                                                                'QUICKSORT_UPDATE_REC': 'WHILE',
                                                                 'QUICKSORT_UPDATE': 'SEQUENTIAL',
                                                                 'QUICKSORT': 'WHILE'}.items()))
 
@@ -289,6 +297,9 @@ class QuickSortListEnv(Environment):
     def _quicksort_precondition(self):
         return len(self.prog_stack) == 0 and self.p1_pos == 0 and self.p2_pos == self.length-1 and self.p3_pos == 0
 
+    def _quick_sort_update_recursive_precondition(self):
+        return len(self.prog_stack) == 0 and self.p1_pos == 0 and self.p2_pos == self.length-1 and self.p3_pos == 0
+
     def _bubble_precondition(self):
         bool = self.p1_pos == 0
         bool &= ((self.p2_pos == 0) or (self.p2_pos == 1))
@@ -365,47 +376,51 @@ class QuickSortListEnv(Environment):
         return bool
 
     def _partition_update_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
-            = partition_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), sample=False)
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter \
+            = partition_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), counter, sample=False)
 
-        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
+        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), counter)
         return self.compare_state(new_state, state)
 
     def _partition_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter \
             = partition(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
-                               sample=False)
+                               counter, sample=False)
 
-        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
+        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), counter)
         return self.compare_state(new_state, state)
 
     def _save_load_partition_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter \
             = save_load_partition(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(),
-                               init_temp_vars.copy(),
+                               init_temp_vars.copy(), counter,
                                sample=False)
 
-        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
+        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), counter)
         return self.compare_state(new_state, state)
 
     def _quicksort_update_postcondition(self, init_state, state):
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars = init_state
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter = init_state
 
-        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars \
+        init_scratchpad_ints, init_p1_pos, init_p2_pos, init_p3_pos, init_stack, init_temp_vars, counter \
             = quicksort_update(init_scratchpad_ints.copy(), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(),
-                               sample=False)
+                               counter, sample=False)
 
-        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy())
+        new_state = (np.copy(init_scratchpad_ints), init_p1_pos, init_p2_pos, init_p3_pos, init_stack.copy(), init_temp_vars.copy(), counter)
         return self.compare_state(new_state, state)
 
+    def _quicksort_update_rec_postcondition(self, init_state, state):
+        scratchpad_ints, _, _, _, _, _, _ = state
+        return np.all(scratchpad_ints[:self.length - 1] <= scratchpad_ints[1:self.length])
+
     def _quicksort_postcondition(self, init_state, state):
-        scratchpad_ints, _, _, _, _, _ = state
+        scratchpad_ints, _, _, _, _, _, _ = state
         return np.all(scratchpad_ints[:self.length - 1] <= scratchpad_ints[1:self.length])
 
     def _bubblesort_postcondition(self, init_state, state):
@@ -534,6 +549,8 @@ class QuickSortListEnv(Environment):
             init_prog_stack = []
         init_temp_variables = [-1 if np.random.randint(0, 2) == 1 else 0]
 
+        init_counter = self.length
+
         if current_task_name == 'BUBBLE' or current_task_name == 'BUBBLESORT':
             init_pointers_pos1 = 0
             init_pointers_pos2 = 0
@@ -542,28 +559,28 @@ class QuickSortListEnv(Environment):
 
             total_size, env = self.return_sample_state("PARTITION")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = env
+            init_prog_stack, init_temp_variables, init_counter = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'PARTITION_UPDATE':
 
             total_size, env = self.return_sample_state("PARTITION_UPDATE")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = env
+            init_prog_stack, init_temp_variables, init_counter = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'SAVE_LOAD_PARTITION':
 
             total_size, env = self.return_sample_state("SAVE_LOAD_PARTITION")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = env
+            init_prog_stack, init_temp_variables, init_counter = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT_UPDATE':
 
             total_size, env = self.return_sample_state("QUICKSORT_UPDATE")
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = env
+            init_prog_stack, init_temp_variables, init_counter = env
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'QUICKSORT':
@@ -571,7 +588,15 @@ class QuickSortListEnv(Environment):
             # Here the first value is the initial condition
             index = 0
             temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
-            init_prog_stack, init_temp_variables = self.sampled_env["QUICKSORT"][0]
+            init_prog_stack, init_temp_variables, init_counter = self.sampled_env["QUICKSORT"][0]
+            self.scratchpad_ints = np.copy(temp_scratchpad_ints)
+
+        elif current_task_name == 'QUICKSORT_UPDATE_REC':
+
+            # Here the first value is the initial condition
+            index = 0
+            temp_scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, \
+            init_prog_stack, init_temp_variables, init_counter = self.sampled_env["QUICKSORT_UPDATE_REC"][0]
             self.scratchpad_ints = np.copy(temp_scratchpad_ints)
 
         elif current_task_name == 'RESET':
@@ -607,6 +632,7 @@ class QuickSortListEnv(Environment):
         self.p3_pos = init_pointers_pos3
         self.prog_stack = init_prog_stack.copy()
         self.temp_variables = init_temp_variables.copy()
+        self.counter = init_counter
         self.has_been_reset = True
 
         return index, total_size
@@ -619,7 +645,7 @@ class QuickSortListEnv(Environment):
 
         """
         assert self.has_been_reset, 'Need to reset the environment before getting states'
-        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos, self.p3_pos, self.prog_stack.copy(), self.temp_variables.copy()
+        return np.copy(self.scratchpad_ints), self.p1_pos, self.p2_pos, self.p3_pos, self.prog_stack.copy(), self.temp_variables.copy(), self.counter
 
     def get_observation(self):
         """Returns an observation of the current state.
@@ -647,6 +673,7 @@ class QuickSortListEnv(Environment):
         pt_2_right = int(self.p2_pos == (self.length - 1))
         pt_3_right = int(self.p3_pos == (self.length - 1))
         p1p2p3 = np.eye(10)[[p1_val, p2_val, p3_val]].reshape(-1)
+        is_counter_zero = (self.counter > 0)
         #p1p2p3_pos = np.array([self.p1_pos, self.p2_pos, self.p3_pos])
         #first_stack_pos = np.array([self.prog_stack[len(self.prog_stack)-2], self.prog_stack[len(self.prog_stack)-1]]) if is_stack_full else np.array([-1, -1])
         #how_many_pointers_saved = np.array([len(self.prog_stack)/3])
@@ -683,6 +710,10 @@ class QuickSortListEnv(Environment):
         else:
             final_observation = np.concatenate((p1p2p3, bools), axis=0)
 
+        # If we are using the recursive version, then we store also the counter info
+        if self.recursive_version:
+            final_observation = np.concatenate([final_observation, np.array([is_counter_zero])], axis=0)
+
         return final_observation
 
     def get_observation_dim(self):
@@ -696,6 +727,10 @@ class QuickSortListEnv(Environment):
             total_observation_dim = 3*10 + 2*10 + 14
         else:
             total_observation_dim = 3 * 10 + 14
+
+        # Add information for the recursive version
+        if self.recursive_version:
+            total_observation_dim += 1
 
         return total_observation_dim
 
@@ -713,6 +748,7 @@ class QuickSortListEnv(Environment):
         self.p3_pos = state[3]
         self.prog_stack = state[4].copy()
         self.temp_variables = state[5].copy()
+        self.counter = state[6]
 
     def _is_sorted(self):
         """Assert is the list is sorted or not.
@@ -734,7 +770,9 @@ class QuickSortListEnv(Environment):
         p3_pos = state[3]
         stack = state[4].copy()
         temp = state[5].copy()
-        str = 'list: {}, p1 : {}, p2 : {}, p3 : {}, stack: {}, temp_vars: {}'.format(scratchpad, p1_pos, p2_pos, p3_pos, stack, temp)
+        counter = state[6]
+        str = 'list: {}, p1 : {}, p2 : {}, p3 : {}, stack: {}, temp_vars: {}, counter: {}'.format(
+            scratchpad, p1_pos, p2_pos, p3_pos, stack, temp, counter)
         return str
 
     def compare_state(self, state1, state2):
@@ -756,6 +794,7 @@ class QuickSortListEnv(Environment):
         bool &= (state1[3] == state2[3])
         bool &= (state1[4] == state2[4])
         bool &= (state1[5] == state2[5])
+        bool &= (state1[6] == state2[6])
         return bool
 
     def get_state_clone(self, state):
@@ -763,4 +802,4 @@ class QuickSortListEnv(Environment):
         Get a clone of the current state
         :return:
         """
-        return np.copy(state[0]), state[1], state[2], state[3], state[4].copy(), state[5].copy()
+        return np.copy(state[0]), state[1], state[2], state[3], state[4].copy(), state[5].copy(), state[6]

@@ -35,6 +35,7 @@ if __name__ == "__main__":
     parser.add_argument('--without-partition-update', help="Train everything without the partition update program", default=False, action="store_true")
     parser.add_argument('--reduced-operation-set', help="Train everything with a reduced set of operations", default=False, action="store_true")
     parser.add_argument('--keep-training', help="Keep training even if we reach 'perfection' on all the task", default=False, action="store_true")
+    parser.add_argument('--recursive-quicksort', help="The QUICKSORT_UPDATE function is made recursive.", default=False, action="store_true")
     args = parser.parse_args()
 
     # Get arguments
@@ -73,23 +74,26 @@ if __name__ == "__main__":
     ts = time.localtime(time.time())
     date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
     # Path to save policy
-    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
+    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
                                                                            sample_error_prob, args.without_partition_update,
                                                                                     args.reduced_operation_set,
-                                                                                    args.keep_training)
+                                                                                    args.keep_training,
+                                                                                    args.recursive_quicksort)
     # Path to save results
-    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
+    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
                                                                               sample_error_prob, args.without_partition_update,
                                                                                        args.reduced_operation_set,
-                                                                                       args.keep_training)
+                                                                                       args.keep_training,
+                                                                                       args.recursive_quicksort)
     # Path to tensorboard
-    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
+    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
                                                                  sample_error_prob, args.without_partition_update,
                                                                           args.reduced_operation_set,
-                                                                          args.keep_training)
+                                                                          args.keep_training,
+                                                                          args.recursive_quicksort)
 
     # Instantiate tensorboard writer
     if tensorboard:
@@ -107,7 +111,8 @@ if __name__ == "__main__":
     env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
                                sample_from_errors_prob=sample_error_prob,
                                without_partition_update=args.without_partition_update,
-                               reduced_set=args.reduced_operation_set)
+                               reduced_set=args.reduced_operation_set,
+                               recursive_version=args.recursive_quicksort)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -146,13 +151,15 @@ if __name__ == "__main__":
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
                          'use_dirichlet_noise': True, 'use_structural_constraint': conf.structural_constraint,
-                         'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty}
+                         'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty,
+                         'max_recursion_depth': length}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
                         'gamma': conf.gamma, 'use_structural_constraint': conf.structural_constraint,
-                        'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty}
+                        'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty,
+                        'max_recursion_depth': length}
 
     # Specify a custom start level
     if custom_start_level:
@@ -177,12 +184,15 @@ if __name__ == "__main__":
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
                                sample_from_errors_prob=sample_error_prob,
                                without_partition_update=args.without_partition_update,
-                               reduced_set=args.reduced_operation_set)
+                               reduced_set=args.reduced_operation_set,
+                               recursive_version=args.recursive_quicksort)
 
         if args.without_partition_update:
             max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
         elif args.reduced_operation_set:
             max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
+        elif args.recursive_quicksort:
+            max_depth_dict =  {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 1, 6: 3}
         else:
             max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
@@ -207,12 +217,15 @@ if __name__ == "__main__":
             env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=args.expose_stack,
                                    validation_mode=True,
                                    without_partition_update=args.without_partition_update,
-                                   reduced_set=args.reduced_operation_set)
+                                   reduced_set=args.reduced_operation_set,
+                                   recursive_version=args.recursive_quicksort)
 
             if args.without_partition_update:
                 max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
             elif args.reduced_operation_set:
                 max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
+            elif args.recursive_quicksort:
+                max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 1, 6: 3}
             else:
                 max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
