@@ -8,9 +8,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
+plt.rcParams.update({'font.size': 25})
 
 
-def autolabel(rects, ax):
+
+def autolabel(rects, ax, ann_size):
     """Attach a text label above each bar in *rects*, displaying its height."""
     for rect in rects:
         height = rect.get_height()
@@ -18,13 +20,18 @@ def autolabel(rects, ax):
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # 3 points vertical offset
                     textcoords="offset points",
-                    ha='center', va='bottom', fontsize=8)
+                    ha='center', va='bottom', fontsize=ann_size)
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--op", type=str, default="PARTITION_UPDATE")
+    parser.add_argument("--save", action="store_true", default=False)
+    parser.add_argument("--annotate", action="store_true", default=False)
+    parser.add_argument("--title", action="store_true", default=False)
+    parser.add_argument("--legend", action="store_true", default=False)
+    parser.add_argument("--annotation-size", type=int, default=6)
     args = parser.parse_args()
 
     result_files = glob.glob("../results/validation_*")
@@ -118,47 +125,64 @@ if __name__ == "__main__":
     x = np.arange(len(values_lengths))  # the label locations
     width = 0.10  # the width of the bars
 
-    fig, ax = plt.subplots(2)
+    fig, ax = plt.subplots(2, figsize=(10, 6))
 
     i=0
     rects = []
-    for v in total_data_op:
-        if i < 2:
-            rect = ax[0].bar(x - width*(2-i) , v, width, label=combinations_labels[i])
-        else:
-            rect = ax[0].bar(x + width * (i-2), v, width, label=combinations_labels[i])
-        i += 1
+    if len(total_data_op) == 1 and len(total_data_op_2) == 1:
+        fig, ax = plt.subplots(1, figsize=(10, 6))
+        ax = [ax, ax]
+        rect = ax[0].bar(x+width/2, total_data_op[0], width, label="Uniform Sampling")
+        rect_2 = ax[0].bar(x-width/2, total_data_op_2[0], width, label="Uniform Sampling + Error Sampling")
         rects.append((rect, ax[0]))
+        rects.append((rect_2, ax[0]))
+    else:
+        for v in total_data_op:
+            if i < 2:
+                rect = ax[0].bar(x - width*(2-i) , v, width, label=combinations_labels[i])
+            else:
+                rect = ax[0].bar(x + width * (i-2), v, width, label=combinations_labels[i])
+            i += 1
+            rects.append((rect, ax[0]))
 
     i=0
-    for v in total_data_op_2:
-        if i < 2:
-            rect = ax[1].bar(x - width* (2 - i), v, width, label=combinations_labels[i])
-        else:
-            rect = ax[1].bar(x + width * (i - 2), v, width, label=combinations_labels[i])
-        i += 1
-        rects.append((rect, ax[1]))
+    if len(total_data_op_2) != 1:
+        for v in total_data_op_2:
+            if i < 2:
+                rect = ax[1].bar(x - width* (2 - i), v, width, label=combinations_labels[i])
+            else:
+                rect = ax[1].bar(x + width * (i - 2), v, width, label=combinations_labels[i])
+            i += 1
+            rects.append((rect, ax[1]))
 
-    ax[0].set_title("{} without error retrain".format(operation_name))
+    if args.title:
+        ax[0].set_title("{} without error retrain".format(operation_name))
+        ax[1].set_title("{} with error retrain".format(operation_name))
+
     ax[0].set_xticks(x)
     ax[0].set_xticklabels(values_lengths)
-    ax[1].set_title("{} with error retrain".format(operation_name))
     ax[1].set_xticks(x)
     ax[1].set_xticklabels(values_lengths)
 
-    box = ax[0].get_position()
-    ax[0].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax[0].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    if args.legend:
+        box = ax[0].get_position()
+        ax[0].set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax[0].legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    box = ax[1].get_position()
-    ax[1].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax[1].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        box = ax[1].get_position()
+        ax[1].set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax[1].legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    for r in rects:
-        autolabel(r[0], r[1])
+    if args.annotate:
+        for r in rects:
+            autolabel(r[0], r[1], args.annotation_size)
 
     plt.tight_layout()
-    plt.show()
+
+    if not args.save:
+        plt.show()
+    else:
+        plt.savefig("{}_plot.png".format(args.op), dpi=250, bbox_inches="tight")
 
     # Save the results to file
     df.to_csv("complete_results.csv")
