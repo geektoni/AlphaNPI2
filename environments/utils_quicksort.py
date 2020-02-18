@@ -69,6 +69,7 @@ programs_library_recursive_quicksort_update = OrderedDict(sorted({'STOP': {'leve
                                                         'POP': {'level': 0, 'recursive': False},
                                                         'SAVE_PTR_1': {'level': 0, 'recursive': False},
                                                         'LOAD_PTR_1': {'level': 0, 'recursive': False},
+                                                        'DECREASE_CTR': {'level': 0, 'recursive': False},
                                                         'PARTITION_UPDATE': {'level': 1, 'recursive': False},
                                                         'PARTITION': {'level': 2, 'recursive': False},
                                                         'SAVE_LOAD_PARTITION': {'level': 3, 'recursive': False},
@@ -216,6 +217,7 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
     """ (4 operations) or 7 (if we do not use the save load partition)
     POP
     SAVE_LOAD_PARTITION
+    DECREASE_CTR (only if in recursive mode)
     PUSH
     STOP
 

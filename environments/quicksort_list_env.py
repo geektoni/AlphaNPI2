@@ -95,7 +95,8 @@ class QuickSortListEnv(Environment):
                                                     'PUSH': self._push,
                                                     'POP': self._pop,
                                                     'SAVE_PTR_1': self._save_ptr_1,
-                                                    'LOAD_PTR_1': self._load_ptr_1}.items()))
+                                                    'LOAD_PTR_1': self._load_ptr_1,
+                                                    'DECREASE_CTR': self._decrease_ctr}.items()))
 
             self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
                                                             'PARTITION_UPDATE': self._partition_update_precondition,
@@ -115,7 +116,8 @@ class QuickSortListEnv(Environment):
                                                             'PUSH': self._push_precondition,
                                                             'POP': self._pop_precondition,
                                                             'SAVE_PTR_1': self._save_ptr_1_precondition,
-                                                            'LOAD_PTR_1': self._load_ptr_1_precondition}.items()))
+                                                            'LOAD_PTR_1': self._load_ptr_1_precondition,
+                                                            'DECREASE_CTR': self._decrease_ctr_precondition}.items()))
 
             self.prog_to_postcondition = OrderedDict(sorted({
                                           'PARTITION_UPDATE': self._partition_update_postcondition,
@@ -270,6 +272,13 @@ class QuickSortListEnv(Environment):
 
     def _load_ptr_1_precondition(self):
         return self.temp_variables[0] != -1
+
+    def _decrease_ctr(self):
+        if self.counter > 0:
+            self.counter -= 1
+
+    def _decrease_ctr_precondition(self):
+        return self.counter > 0
 
     def _compswap_precondition(self):
         bool = self.p1_pos < self.length - 1
