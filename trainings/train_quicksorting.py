@@ -152,14 +152,14 @@ if __name__ == "__main__":
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
                          'use_dirichlet_noise': True, 'use_structural_constraint': conf.structural_constraint,
                          'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty,
-                         'max_recursion_depth': length*2+1}
+                         'max_recursion_depth': 100}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
                         'gamma': conf.gamma, 'use_structural_constraint': conf.structural_constraint,
                         'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty,
-                        'max_recursion_depth': length*2+1}
+                        'max_recursion_depth': 100}
 
     # Specify a custom start level
     if custom_start_level:
@@ -192,7 +192,7 @@ if __name__ == "__main__":
         elif args.reduced_operation_set:
             max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
         elif args.recursive_quicksort:
-            max_depth_dict =  {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 5, 5: length + 2, 6: 3}
+            max_depth_dict =  {1: 3, 2: 6, 3: 4, 4: 5, 5: 4, 6: 3}
         else:
             max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
@@ -225,7 +225,7 @@ if __name__ == "__main__":
             elif args.reduced_operation_set:
                 max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
             elif args.recursive_quicksort:
-                max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 5, 5: length + 2, 6: 3}
+                max_depth_dict = {1: 3, 2: 6, 3: 4, 4: 5, 5: 4, 6: 3}
             else:
                 max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
