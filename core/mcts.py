@@ -4,6 +4,8 @@
 import numpy as np
 import torch
 
+import copy
+
 
 class MCTS:
     """This class is used to perform a search over the state space for different paths by building
@@ -36,7 +38,7 @@ class MCTS:
                  dir_epsilon=0.25, dir_noise=0.03, exploit=False, gamma=0.97, save_sub_trees=False,
                  recursion_depth=0, max_recursion_depth=500, qvalue_temperature=1.0, recursive_penalty=0.9,
                  structural_penalty_factor=3, use_structural_constraint = False, penalize_level_0=True,
-                 level_0_penalty=1, verbose=True):
+                 level_0_penalty=1, verbose=True, recursive_total_calls=0):
 
         self.policy = policy
         self.c_puct = c_puct
@@ -63,6 +65,7 @@ class MCTS:
         self.penalize_level_0 = penalize_level_0
         self.level_0_penalty = level_0_penalty
         self.verbose = verbose
+        self.recursive_total_calls = recursive_total_calls
 
         assert self.level_0_penalty >= 0, "Level 0 custom penalty must be a positive number!"
 
@@ -76,7 +79,7 @@ class MCTS:
             'save_sub_trees': self.save_sub_trees, 'recursion_depth': recursion_depth+1,
             'max_recursion_depth': self.max_recursion_depth, 'use_structural_constraint': self.use_structural_constraint,
             'penalize_level_0': self.penalize_level_0, 'level_0_penalty': self.level_0_penalty,
-            'verbose': self.verbose}
+            'verbose': self.verbose, 'recursive_total_calls': self.recursive_total_calls}
 
 
     def _expand_node(self, node):
@@ -280,12 +283,19 @@ class MCTS:
 
                         # If we are recursive, then we compute the max recursion depth
                         # by taking into account also the tree depth itself
-                        if self.recursion_depth*self.max_depth_dict[program_level] >= self.max_recursion_depth:
+                        if self.recursive_total_calls >= self.max_recursion_depth:
                             max_recursion_reached = True
+                            if self.verbose:
+                                print("Reached the maximum_recursion_depth {}, with recursion depth {} ".format(self.recursive_total_calls, self.recursion_depth))
                             continue
 
                         sub_mcts_init_state = self.env.get_state()
-                        sub_mcts = MCTS(self.policy, self.env, program_to_call_index, **self.sub_tree_params)
+
+                        # Copy sub_tree_params and increase node counts
+                        copy_ = copy.deepcopy(self.sub_tree_params)
+                        copy_["recursive_total_calls"] += node["depth"]
+
+                        sub_mcts = MCTS(self.policy, self.env, program_to_call_index, **copy_)
                         sub_trace = sub_mcts.sample_execution_trace()
                         sub_task_reward, sub_root_node = sub_trace[7], sub_trace[6]
 

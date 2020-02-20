@@ -94,7 +94,7 @@ class Trainer():
                     batch = self.buffer.sample_batch(self.batch_size)
                     if batch is not None:
                         self.policy.train_on_batch(batch)
-            if verbose:
+            if self.verbose:
                 print("Done episode {}/{}".format(episode + 1, self.num_episodes_per_task))
 
     def perform_validation(self):
