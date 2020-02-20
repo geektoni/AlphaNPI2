@@ -36,6 +36,7 @@ if __name__ == "__main__":
     parser.add_argument('--reduced-operation-set', help="Train everything with a reduced set of operations", default=False, action="store_true")
     parser.add_argument('--keep-training', help="Keep training even if we reach 'perfection' on all the task", default=False, action="store_true")
     parser.add_argument('--recursive-quicksort', help="The QUICKSORT_UPDATE function is made recursive.", default=False, action="store_true")
+    parser.add_argument('--max-rec-depth', help="Maximum recursion depth", default=100, type=int)
     args = parser.parse_args()
 
     # Get arguments
@@ -152,14 +153,14 @@ if __name__ == "__main__":
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
                          'use_dirichlet_noise': True, 'use_structural_constraint': conf.structural_constraint,
                          'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty,
-                         'max_recursion_depth': 100}
+                         'max_recursion_depth': args.max_rec_depth}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
                         'gamma': conf.gamma, 'use_structural_constraint': conf.structural_constraint,
                         'penalize_level_0': conf.penalize_level_0, 'level_0_penalty': conf.level_0_custom_penalty,
-                        'max_recursion_depth': 100}
+                        'max_recursion_depth': args.max_rec_depth}
 
     # Specify a custom start level
     if custom_start_level:

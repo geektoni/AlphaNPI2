@@ -278,7 +278,9 @@ class MCTS:
                     # if never been done, compute new tree to execute program
                     if node['visit_count'] == 0.0:
 
-                        if self.recursion_depth >= self.max_recursion_depth:
+                        # If we are recursive, then we compute the max recursion depth
+                        # by taking into account also the tree depth itself
+                        if self.recursion_depth*self.max_depth_dict[program_level] >= self.max_recursion_depth:
                             max_recursion_reached = True
                             continue
 
