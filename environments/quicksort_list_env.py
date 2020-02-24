@@ -803,7 +803,11 @@ class QuickSortListEnv(Environment):
         bool &= (state1[3] == state2[3])
         bool &= (state1[4] == state2[4])
         bool &= (state1[5] == state2[5])
-        bool &= (state1[6] == state2[6])
+
+        # If we are using the recursive version then we will
+        # check also the counter
+        if self.recursive_version:
+            bool &= (state1[6] == state2[6])
         return bool
 
     def get_state_clone(self, state):
