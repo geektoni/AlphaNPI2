@@ -94,7 +94,7 @@ if __name__ == "__main__":
     if save_results:
         results_file.write('Validation on model: {}'.format(load_path) + ' \n')
 
-    for len in range(5, 21):
+    for len in range(5, 31):
 
         print("** Start validation for len = {}".format(len))
 

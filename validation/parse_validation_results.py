@@ -1,6 +1,7 @@
 import pandas as pd
 import glob
 import os
+import itertools
 
 import argparse
 import numpy as np
@@ -8,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
-plt.rcParams.update({'font.size': 25})
+plt.rcParams.update({'font.size': 40})
 
 
 
@@ -32,6 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("--title", action="store_true", default=False)
     parser.add_argument("--legend", action="store_true", default=False)
     parser.add_argument("--annotation-size", type=int, default=6)
+    parser.add_argument("--line", action="store_true", default=False)
     args = parser.parse_args()
 
     result_files = glob.glob("../results/validation_*")
@@ -45,6 +47,8 @@ if __name__ == "__main__":
                     ["False", "False", "False"],
                     ["False", "False", "True"]
                     ]
+
+    #combinations = [["False", "False", "False"]]
 
     combinations_labels = [
         "reduced (no stack)",
@@ -124,34 +128,56 @@ if __name__ == "__main__":
 
     x = np.arange(len(values_lengths))  # the label locations
     width = 0.10  # the width of the bars
+    markers_list = itertools.cycle(('.', '^', 'v', 's', 'P', "*", "D"))
 
-    fig, ax = plt.subplots(2, figsize=(10, 6))
+    if len(total_data_op) != 1 and len(total_data_op_2) != 1:
+        fig, ax = plt.subplots(2, figsize=(10, 6))
 
     i=0
     rects = []
     if len(total_data_op) == 1 and len(total_data_op_2) == 1:
         fig, ax = plt.subplots(1, figsize=(10, 6))
         ax = [ax, ax]
-        rect = ax[0].bar(x+width/2, total_data_op[0], width, label="Uniform Sampling")
-        rect_2 = ax[0].bar(x-width/2, total_data_op_2[0], width, label="Uniform Sampling + Error Sampling")
+
+        if args.line:
+            rect = ax[0].plot(total_data_op[0], label="Uniform Sampling")
+            rect_2 = ax[0].plot(total_data_op_2[0], label="Uniform Sampling + Error Sampling")
+        else:
+            rect = ax[0].bar(x+width/2, total_data_op[0], width, label="Uniform Sampling")
+            rect_2 = ax[0].bar(x-width/2, total_data_op_2[0], width, label="Uniform Sampling + Error Sampling")
+
         rects.append((rect, ax[0]))
         rects.append((rect_2, ax[0]))
     else:
         for v in total_data_op:
             if i < 2:
-                rect = ax[0].bar(x - width*(2-i) , v, width, label=combinations_labels[i])
+                if args.line:
+                    rect = ax[0].plot(v, label=combinations_labels[i], marker=next(markers_list))
+                else:
+                    rect = ax[0].bar(x - width*(2-i) , v, width, label=combinations_labels[i])
             else:
-                rect = ax[0].bar(x + width * (i-2), v, width, label=combinations_labels[i])
+                if args.line:
+                    rect = ax[0].plot(v, label=combinations_labels[i], marker=next(markers_list))
+                else:
+                    rect = ax[0].bar(x + width * (i-2), v, width, label=combinations_labels[i])
             i += 1
             rects.append((rect, ax[0]))
 
+    # Regenerate the iterator since we cannot rewind it
+    markers_list = itertools.cycle(('.', '^', 'v', 's', 'P', "*", "D"))
     i=0
     if len(total_data_op_2) != 1:
         for v in total_data_op_2:
             if i < 2:
-                rect = ax[1].bar(x - width* (2 - i), v, width, label=combinations_labels[i])
+                if args.line:
+                    rect = ax[1].plot(v, label=combinations_labels[i], marker=next(markers_list))
+                else:
+                    rect = ax[1].bar(x - width* (2 - i), v, width, label=combinations_labels[i])
             else:
-                rect = ax[1].bar(x + width * (i - 2), v, width, label=combinations_labels[i])
+                if args.line:
+                    rect = ax[1].plot(v, label=combinations_labels[i], marker=next(markers_list))
+                else:
+                    rect = ax[1].bar(x + width * (i - 2), v, width, label=combinations_labels[i])
             i += 1
             rects.append((rect, ax[1]))
 
@@ -163,6 +189,11 @@ if __name__ == "__main__":
     ax[0].set_xticklabels(values_lengths)
     ax[1].set_xticks(x)
     ax[1].set_xticklabels(values_lengths)
+
+    # Set plot limits
+    ax[0].set_ylim(0,1)
+    ax[1].set_ylim(0,1)
+
 
     if args.legend:
         box = ax[0].get_position()
@@ -178,6 +209,8 @@ if __name__ == "__main__":
             autolabel(r[0], r[1], args.annotation_size)
 
     plt.tight_layout()
+
+    plt.ylim(0, 1)
 
     if not args.save:
         plt.show()
