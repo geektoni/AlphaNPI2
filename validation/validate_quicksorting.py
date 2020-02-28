@@ -29,6 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--max-length', help='Max size of the list we want to order', default=7, type=int)
     parser.add_argument('--validation-length', help='Size of the validation lists we want to order', default=7, type=int)
     parser.add_argument('--operation', help="Operation we want to test", default="QUICKSORT", type=str)
+    parser.add_argument('--output-dir', help="Operation we want to test", default="../results", type=str)
     args = parser.parse_args()
 
     # Get arguments
@@ -66,7 +67,7 @@ if __name__ == "__main__":
         # get date and time
         ts = time.localtime(time.time())
         date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
-        results_save_path = '../results/validation_list_npi_{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, args.operation, samp_err_poss, reduced_op_set, without_p_upd, expose_stack, seed)
+        results_save_path = args.output_dir+'/validation_list_npi_{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, args.operation, samp_err_poss, reduced_op_set, without_p_upd, expose_stack, seed)
         results_file = open(results_save_path, 'w')
 
     # Load environment constants
@@ -94,20 +95,20 @@ if __name__ == "__main__":
     if save_results:
         results_file.write('Validation on model: {}'.format(load_path) + ' \n')
 
-    for len in range(5, 31):
+    for len_ in list(range(5, 31))+[60, 100]:
 
-        print("** Start validation for len = {}".format(len))
+        print("** Start validation for len = {}".format(len_))
 
         mcts_rewards_normalized = []
         mcts_rewards = []
         network_only_rewards = []
 
         if without_p_upd:
-            max_depth_dict = {1: 3 * (len - 1) + 2, 2: 4, 3: 4, 4: len + 2}
+            max_depth_dict = {1: 3 * (len_ - 1) + 2, 2: 4, 3: 4, 4: len_ + 2}
         elif reduced_op_set:
-            max_depth_dict = {1: 3 * (len - 1) + 2, 2: 6, 3: len + 2}
+            max_depth_dict = {1: 3 * (len_ - 1) + 2, 2: 6, 3: len_ + 2}
         else:
-            max_depth_dict = {1: 3, 2: 2 * (len - 1) + 2, 3: 4, 4: 4, 5: len + 2}
+            max_depth_dict = {1: 3, 2: 2 * (len_ - 1) + 2, 3: 4, 4: 4, 5: len_ + 2}
 
         mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                             'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
@@ -115,12 +116,18 @@ if __name__ == "__main__":
                             'gamma': conf.gamma, "penalize_level_0": pen_level_0, 'use_structural_constraint': str_c,
                             'verbose': False}
 
-        for _ in tqdm(range(100)):
+        for _ in tqdm(range(50)):
 
-            env = QuickSortListEnv(length=len, encoding_dim=conf.encoding_dim,
+            env = QuickSortListEnv(length=len_, encoding_dim=conf.encoding_dim,
                                    expose_stack=expose_stack, without_partition_update=without_p_upd,
                                    sample_from_errors_prob=samp_err_poss, reduced_set=reduced_op_set)
-            operation_index = env.programs_library[args.operation]['index']
+
+            try:
+                operation_index = env.programs_library[args.operation]['index']
+            except:
+                print("The model analyzed does not have the operation ", args.operation)
+                exit(0)
+
 
             # Test with mcts
             mcts = MCTS(policy, env, operation_index, **mcts_test_params)
@@ -143,12 +150,12 @@ if __name__ == "__main__":
 
         if verbose:
             print('Length: {}, mcts mean reward: {}, mcts mean normalized reward: {}, '
-                  'network only mean reward: {}'.format(len, mcts_rewards_mean, mcts_rewards_normalized_mean,
+                  'network only mean reward: {}'.format(len_, mcts_rewards_mean, mcts_rewards_normalized_mean,
                                                         network_only_rewards_mean))
 
         if save_results:
             str = 'Length: {}, mcts mean reward: {}, mcts mean normalized reward: {}, ' \
-                  'network only mean reward: {}'.format(len, mcts_rewards_mean, mcts_rewards_normalized_mean,
+                  'network only mean reward: {}'.format(len_, mcts_rewards_mean, mcts_rewards_normalized_mean,
                                                         network_only_rewards_mean)
             results_file.write(str + ' \n')
 
