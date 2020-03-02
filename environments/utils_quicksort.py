@@ -77,6 +77,23 @@ programs_library_recursive_quicksort_update = OrderedDict(sorted({'STOP': {'leve
                                                         'QUICKSORT_UPDATE_REC': {'level': 5, 'recursive': True},
                                                         'QUICKSORT': {'level': 6, 'recursive': False}}.items()))
 
+programs_library_reduced_recursive = OrderedDict(sorted({'STOP': {'level': -1, 'recursive': False},
+                                                        'PTR_1_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_LEFT': {'level': 0, 'recursive': False},
+                                                        'PTR_1_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_2_RIGHT': {'level': 0, 'recursive': False},
+                                                        'PTR_3_RIGHT': {'level': 0, 'recursive': False},
+                                                        'SWAP': {'level': 0, 'recursive': False},
+                                                        'SWAP_PIVOT': {'level': 0, 'recursive': False},
+                                                        'PUSH': {'level': 0, 'recursive': False},
+                                                        'POP': {'level': 0, 'recursive': False},
+                                                        'SAVE_PTR_1': {'level': 0, 'recursive': False},
+                                                        'LOAD_PTR_1': {'level': 0, 'recursive': False},
+                                                        'PARTITION': {'level': 1, 'recursive': False},
+                                                        'QUICKSORT_UPDATE': {'level': 2, 'recursive': False},
+                                                        'QUICKSORT': {'level': 3, 'recursive': True}}.items()))
+
 
 def assert_partition_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp):
     assert init_pointers_pos3 < init_pointers_pos2 \

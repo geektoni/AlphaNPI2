@@ -36,9 +36,10 @@ class MCTS:
                  c_puct=1.0, number_of_simulations=100, max_depth_dict={1: 5, 2: 50, 3: 150},
                  temperature=1.0, use_dirichlet_noise=False,
                  dir_epsilon=0.25, dir_noise=0.03, exploit=False, gamma=0.97, save_sub_trees=False,
-                 recursion_depth=0, max_recursion_depth=500, qvalue_temperature=1.0, recursive_penalty=0.9,
-                 structural_penalty_factor=3, use_structural_constraint = False, penalize_level_0=True,
-                 level_0_penalty=1, verbose=True, recursive_total_calls=0):
+                 recursion_depth=0, max_recursion_depth=500, max_recursion_program_call=15, qvalue_temperature=1.0,
+                 recursive_penalty=0.9, structural_penalty_factor=3, use_structural_constraint = False,
+                 penalize_level_0=True, level_0_penalty=1, verbose=True, recursive_total_calls=0,
+                 recursive_program_total_calls=0):
 
         self.policy = policy
         self.c_puct = c_puct
@@ -66,6 +67,8 @@ class MCTS:
         self.level_0_penalty = level_0_penalty
         self.verbose = verbose
         self.recursive_total_calls = recursive_total_calls
+        self.recursive_program_total_calls = recursive_program_total_calls
+        self.max_recursion_program_call = max_recursion_program_call
 
         assert self.level_0_penalty >= 0, "Level 0 custom penalty must be a positive number!"
 
@@ -79,7 +82,9 @@ class MCTS:
             'save_sub_trees': self.save_sub_trees, 'recursion_depth': recursion_depth+1,
             'max_recursion_depth': self.max_recursion_depth, 'use_structural_constraint': self.use_structural_constraint,
             'penalize_level_0': self.penalize_level_0, 'level_0_penalty': self.level_0_penalty,
-            'verbose': self.verbose, 'recursive_total_calls': self.recursive_total_calls}
+            'verbose': self.verbose, 'recursive_total_calls': self.recursive_total_calls,
+            'recursive_program_total_calls': self.recursive_program_total_calls,
+            'max_recursion_program_call': self.max_recursion_program_call}
 
 
     def _expand_node(self, node):
@@ -289,11 +294,27 @@ class MCTS:
                                 print("Reached the maximum_recursion_depth {}, with recursion depth {} ".format(self.recursive_total_calls, self.recursion_depth))
                             continue
 
+                        # If we reached the maximum amount of call for the given subprogram then return
+                        if self.recursive_program_total_calls >= self.max_recursion_program_call:
+                            if self.verbose:
+                                print("Reached the maximum_recursion_depth for program {}, with recursion depth {} "
+                                      .format(self.env.get_program_from_index(self.task_index),
+                                              self.max_recursion_program_call))
+                            continue
+
                         sub_mcts_init_state = self.env.get_state()
 
                         # Copy sub_tree_params and increase node counts
                         copy_ = copy.deepcopy(self.sub_tree_params)
+
+                        # Increase the total depth of the tree
                         copy_["recursive_total_calls"] += node["depth"]
+
+                        # Increase the recursion depth for the given program
+                        if self.recursive_call:
+                            if self.verbose:
+                                print("Increased recursive program count.")
+                            copy_["recursive_program_total_calls"] += 1
 
                         sub_mcts = MCTS(self.policy, self.env, program_to_call_index, **copy_)
                         sub_trace = sub_mcts.sample_execution_trace()

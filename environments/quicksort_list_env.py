@@ -76,7 +76,7 @@ class QuickSortListEnv(Environment):
             elif reduced_set:
                 self.programs_library = programs_library_reduced
             elif recursive_version:
-                self.programs_library = programs_library_recursive_quicksort_update
+                self.programs_library = programs_library_reduced_recursive
             else:
                 self.programs_library = programs_library
 
