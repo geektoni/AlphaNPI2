@@ -1,0 +1,1 @@
+Validation on model: ../models/list_npi_2020_2_25-9_59_11-2286-False-False-1.0-True-0.3-True-False-True-False.pth 
