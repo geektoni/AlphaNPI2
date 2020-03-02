@@ -308,6 +308,10 @@ class RecursiveListEnv(Environment):
         (at left position of the list).
 
         """
+
+        total_size = -1
+        index = -1
+
         assert self.length > 1, "list length must be greater than 1"
         self.start_pos = 0
         self.end_pos = self.length-1
@@ -343,6 +347,8 @@ class RecursiveListEnv(Environment):
         self.p1_pos = init_pointers_pos1
         self.p2_pos = init_pointers_pos2
         self.has_been_reset = True
+
+        return index, total_size
 
     def get_observation(self):
         """Returns an observation of the current state.
@@ -453,7 +459,8 @@ class RecursiveListEnv(Environment):
                 self._decr_length_right()
             if task == 'BUBBLE':
                 self._decr_length_left()
-        return super(RecursiveListEnv, self).start_task(task_index)
+        obs, sindex, ssize = super(RecursiveListEnv, self).start_task(task_index)
+        return obs, sindex, ssize
 
     def end_task(self):
         current_task = self.get_program_from_index(self.current_task_index)
@@ -464,6 +471,9 @@ class RecursiveListEnv(Environment):
             if self.tasks_list.count(self.current_task_index) > 1:
                 self._incr_length_left()
         super(RecursiveListEnv, self).end_task()
+
+    def update_failing_envs(self, state, program_name):
+        pass
 
 class QuickSortRecursiveListEnv(Environment):
     def __init__(self, length=10, encoding_dim=32):
