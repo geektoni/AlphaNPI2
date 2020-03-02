@@ -5,6 +5,8 @@ import torch
 from core.mcts import MCTS
 from visualization.visualise_mcts import MCTSvisualiser
 
+import os
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -34,15 +36,37 @@ if __name__ == "__main__":
                         type=int)
     parser.add_argument('--program', help='Size of the validation lists we want to order', default='QUICKSORT',
                         type=str)
-    parser.add_argument('--iter', help="Number of iterations", default=10000, type=int)
+    parser.add_argument('--iter', help="Number of iterations", default=10, type=int)
+    parser.add_argument('--skip-errors', help='save training progress in .txt file', action='store_false', default=True)
+
     args = parser.parse_args()
 
     # Set random seed
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
+    # Obtain the various configuration options from the name.
+    load_path = args.load_path
+    filename = os.path.split(load_path)[1]
+    values = filename.split("-")
+
+    date = values[0]
+    time_ = values[1]
+    seed = values[2]
+    str_c = values[3].lower() == "true"
+    pen_level_0 = values[4].lower() == "true"
+    leve_0_pen = float(values[5])
+    expose_stack = values[6].lower() == "true"
+    samp_err_poss = float(values[7])
+    without_p_upd = values[8].lower() == "true"
+    reduced_op_set = values[9].lower() == "true"
+    keep_training = values[10].lower() == "true"
+    recursive_quicksort = values[11].split(".")[0].lower() == "true"
+
     # Load environment constants
-    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=True)
+    env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
+                               without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
+                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -58,32 +82,44 @@ if __name__ == "__main__":
 
     # Prepare mcts params
     length = 7
-    max_depth_dict = {1: 3, 2: 2*(length-1)+2, 3: 4,  4: 4, 5: length+2}
+
+    if without_p_upd:
+        max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
+    elif reduced_op_set:
+        max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
+    elif recursive_quicksort:
+        max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 5, 5: 2 * length + 1, 6: 3}
+    else:
+        max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
+
     mcts_train_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
                          'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': False,
                          'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
                          'use_dirichlet_noise': True, 'dir_noise': 0.5, 'dir_epsilon': 0.9,
-                         'penalize_level_0': False, 'use_structural_constraint': False}
+                         'penalize_level_0': pen_level_0, 'use_structural_constraint': False,
+                         'max_recursion_depth': length*2+1}
 
     mcts_test_params = {'number_of_simulations': conf.number_of_simulations_for_validation,
                         'max_depth_dict': max_depth_dict, 'temperature': conf.temperature,
                         'c_puct': conf.c_puct, 'exploit': True, 'level_closeness_coeff': conf.level_closeness_coeff,
-                        'gamma': conf.gamma, "penalize_level_0": False, 'use_structural_constraint': False}
+                        'gamma': conf.gamma, "penalize_level_0": pen_level_0, 'use_structural_constraint': False,
+                        'max_recursion_depth': length*2+1}
 
     # Start debugging ...
-    env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=True)
-    partition_index = env.programs_library[args.program]['index']
-    partition_update_index = env.programs_library['PARTITION_UPDATE']['index']
-    #bubble_index = env.programs_library['BUBBLE']['index']
-    #bubblesort_index = env.programs_library['BUBBLESORT']['index']
+    env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
+                               without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
+                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort)
+    program_index = env.programs_library[args.program]['index']
 
     total_reward = []
     total_failed_programs = [0 for a in range(0, len(env.programs_library))]
     total_failed_state_index = [[] for a in range(0, len(env.programs_library))]
     total_failures = 0
     for i in tqdm(range(args.iter)):
-        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=True)
-        mcts = MCTS(policy, env, partition_index, **mcts_test_params)
+        env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
+                               without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
+                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort)
+        mcts = MCTS(policy, env, program_index, **mcts_test_params)
         res = mcts.sample_execution_trace()
         root_node, r, failed_state_index = res[6], res[7], res[12]
 
@@ -91,9 +127,9 @@ if __name__ == "__main__":
             total_failed_state_index[j] += failed_state_index[j]
 
         # Save a copy of the failing states (specifically for PARTITION_UPDATE)
-        if len(failed_state_index[partition_index]) != 0 and failed_state_index[partition_index][0]==7:
-            visualiser = MCTSvisualiser(env=env)
-            visualiser.print_mcts(root_node=root_node, file_path='mcts_{}.gv'.format(i))
+        #if len(failed_state_index[program_index]) != 0 and failed_state_index[program_index][0]==7:
+        #    visualiser = MCTSvisualiser(env=env)
+        #    visualiser.print_mcts(root_node=root_node, file_path='mcts_{}.gv'.format(i))
 
         if len(mcts.programs_failed_indices) != 0:
             total_failed_programs[mcts.programs_failed_indices[len(mcts.programs_failed_indices)-1]] += 1
@@ -110,37 +146,55 @@ if __name__ == "__main__":
 
     total_failed_state_index = np.array(total_failed_state_index)
 
-    plt.figure(figsize=(11,6))
-    plt.title(env.get_program_from_index(partition_index))
+    if not args.skip_errors:
 
-    empty_dict = [[0 for i in range(0,30)] for j in range(0,30)]
-    for e in total_failed_state_index[partition_index]:
-        empty_dict[e[1]-1][e[0]] +=1
+        plt.figure(figsize=(11,6))
+        plt.title(env.get_program_from_index(program_index))
 
-        #if e[1] in empty_dict:
-        #    empty_dict[e[1]].append(e[0])
-        #else:
-        #    empty_dict[e[1]] = []
-        #    empty_dict[e[1]].append(e[0])
+        empty_dict = [[0 for i in range(0,30)] for j in range(0,30)]
+        for e in total_failed_state_index[program_index]:
+            empty_dict[e[1]-1][e[0]] +=1
 
-    print(pd.DataFrame(empty_dict))
+            #if e[1] in empty_dict:
+            #    empty_dict[e[1]].append(e[0])
+            #else:
+            #    empty_dict[e[1]] = []
+            #    empty_dict[e[1]].append(e[0])
+
+        print(pd.DataFrame(empty_dict))
 
 
-    sns.heatmap(data=pd.DataFrame(empty_dict), cmap="YlGnBu", annot=True)
-    plt.ylabel("Total sampled states")
-    plt.xlabel("State index")
-    #plt.tick_params(labelrotation=90)
+        sns.heatmap(data=pd.DataFrame(empty_dict), cmap="YlGnBu", annot=True)
+        plt.ylabel("Total sampled states")
+        plt.xlabel("State index")
+        #plt.tick_params(labelrotation=90)
 
-    plt.tight_layout()
-    plt.savefig("result_{}.png".format(args.program), dpi=500)
+        plt.tight_layout()
+        plt.savefig("result_{}.png".format(args.program), dpi=500)
 
-    print(total_failed_programs)
-    for i in range(0, len(total_failed_programs)):
-        if total_failed_programs[i] != 0:
-            print("{}, {}".format(i, env.get_program_from_index(i)))
+        print(total_failed_programs)
+        for i in range(0, len(total_failed_programs)):
+            if total_failed_programs[i] != 0:
+                print("{}, {}".format(i, env.get_program_from_index(i)))
 
     print('Total reward: {}'.format(sum(total_reward)/len(total_reward)))
     print('Total failures: {}'.format(total_failures))
+
+
+    # Generate the trace visualization
+    length=4
+    mcts_test_params = {'number_of_simulations': conf.number_of_simulations, 'max_depth_dict': max_depth_dict,
+                         'temperature': conf.temperature, 'c_puct': conf.c_puct, 'exploit': True,
+                         'level_closeness_coeff': conf.level_closeness_coeff, 'gamma': conf.gamma,
+                         'use_dirichlet_noise': True, 'dir_noise': 0.5, 'dir_epsilon': 0.9,
+                         'penalize_level_0': pen_level_0, 'use_structural_constraint': False,
+                        'max_recursion_depth': length*2+1}
+    #env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
+                           #without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
+                           #reduced_set=reduced_op_set, recursive_version=recursive_quicksort)
+    #mcts = MCTS(policy, env, program_index, **mcts_test_params)
+    #res = mcts.sample_execution_trace()
+    #root_node, r, failed_state_index = res[6], res[7], res[12]
     visualiser = MCTSvisualiser(env=env)
     visualiser.print_mcts(root_node=root_node, file_path='mcts.gv')
 

@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     # Path to load policy
     #load_path = '../models/recursive_list_npi_2019_5_15-16_9_19-1.pth'
-    load_path = '../models/recursive_list_npi_2019_5_10-15_9_57-1.pth'
+    load_path = '../models/recursive_list_npi_2020_2_19-11_21_50-1.pth'
 
     # Load environment constants
     env_tmp = RecursiveListEnv(length=5, encoding_dim=conf.encoding_dim)
@@ -41,7 +41,7 @@ if __name__ == "__main__":
                         'gamma': conf.gamma}
 
     # Start debugging ...
-    env = RecursiveListEnv(length=5, encoding_dim=conf.encoding_dim)
+    env = RecursiveListEnv(length=7, encoding_dim=conf.encoding_dim)
     reset_index = env.programs_library['RESET']['index']
     lshift_index = env.programs_library['LSHIFT']['index']
     bubble_index = env.programs_library['BUBBLE']['index']
