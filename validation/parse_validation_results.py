@@ -28,15 +28,19 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--op", type=str, default="PARTITION_UPDATE")
+    parser.add_argument("--dir", type=str, default="../results")
     parser.add_argument("--save", action="store_true", default=False)
     parser.add_argument("--annotate", action="store_true", default=False)
     parser.add_argument("--title", action="store_true", default=False)
     parser.add_argument("--legend", action="store_true", default=False)
     parser.add_argument("--annotation-size", type=int, default=6)
     parser.add_argument("--line", action="store_true", default=False)
+    parser.add_argument("--show", action="store_true", default=False)
+    parser.add_argument("--net", action="store_true", default=False)
+    parser.add_argument("--latex", action="store_true", default=False)
     args = parser.parse_args()
 
-    result_files = glob.glob("../results/validation_*")
+    result_files = glob.glob(args.dir+"/validation_*")
     operation_name = args.op
 
     # Possible value combinations
@@ -106,7 +110,10 @@ if __name__ == "__main__":
     total_data_op = []
     total_data_op_2 = []
     # Length of the lists
-    values_lengths = [5, 20, 60, 100]
+    values_lengths = np.arange(5, 60, 5)
+
+    # Choose which measure whats to read (mcts or net)
+    method = "mcts" if not args.net else "net"
 
     # Generate the list with all the data
     for c in combinations:
@@ -116,7 +123,7 @@ if __name__ == "__main__":
             with_without_train = data_op[(data_op.reduced == c[0])
                         & (data_op.no_part_upd == c[1])
                         & (data_op.expose_stack == c[2])
-                        & (data_op.len == v)]["mcts"].to_list()
+                        & (data_op.len == v)][method].to_list()
             if len(with_without_train) == 0:
                 list_tot.append(0)
                 list_tot_2.append(0)
@@ -131,7 +138,10 @@ if __name__ == "__main__":
     markers_list = itertools.cycle(('.', '^', 'v', 's', 'P', "*", "D"))
 
     if len(total_data_op) != 1 and len(total_data_op_2) != 1:
-        fig, ax = plt.subplots(2, figsize=(10, 6))
+        if args.line:
+            fig, ax = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
+        else:
+            fig, ax = plt.subplots(2, figsize=(10, 4))
 
     i=0
     rects = []
@@ -184,6 +194,9 @@ if __name__ == "__main__":
     if args.title:
         ax[0].set_title("{} without error retrain".format(operation_name))
         ax[1].set_title("{} with error retrain".format(operation_name))
+        if args.line:
+            ax[0].set_title("Without error sampling")
+            ax[1].set_title("With error sampling")
 
     ax[0].set_xticks(x)
     ax[0].set_xticklabels(values_lengths)
@@ -196,13 +209,14 @@ if __name__ == "__main__":
 
 
     if args.legend:
-        box = ax[0].get_position()
-        ax[0].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        ax[0].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        if not args.line:
+            box = ax[0].get_position()
+            ax[0].set_position([box.x0, box.y0, box.width * 0.8, box.height])
+            ax[0].legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         box = ax[1].get_position()
         ax[1].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        ax[1].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        ax[1].legend(loc='center left', bbox_to_anchor=(1, 0.5), title=operation_name, title_fontsize=10)
 
     if args.annotate:
         for r in rects:
@@ -213,9 +227,52 @@ if __name__ == "__main__":
     plt.ylim(0, 1)
 
     if not args.save:
-        plt.show()
+        if args.show:
+            plt.show()
     else:
-        plt.savefig("{}_plot.png".format(args.op), dpi=250, bbox_inches="tight")
+        if args.net:
+            name = "net"
+        else:
+            name = "mcts"
+
+        plt.savefig("{}_plot_{}.png".format(args.op, name), dpi=250, bbox_inches="tight")
 
     # Save the results to file
     df.to_csv("complete_results.csv")
+
+    # generate latex output
+    if args.latex:
+
+        combinations = [["True", "False"],
+                        ["False", "True"],
+                        ["False", "False"]]
+
+        model = "mcts" if not args.net else "net"
+        with open("output_latex_{}.txt".format(model), "w+") as output_latex:
+            method="QUICKSORT"
+            for v in [5, 20, 35, 50]:
+                output_latex.write("{} ".format(v))
+                for c in combinations:
+                    latex_data = df[(df.reduced == c[0])
+                        & (df.no_part_upd == c[1])
+                        & (df.len == v)
+                        & (df.operation == method)]
+
+                    output_latex.write(
+                            "& ({:.2f})-({:.2f}) & ({:.2f})-({:.2f})".format(
+                                latex_data[(latex_data.samp_err == "0.0")
+                                       & (latex_data.expose_stack == "False")][model].values[0],
+                                latex_data[(latex_data.samp_err == "0.3")
+                                       & (latex_data.expose_stack == "False")][model].values[0],
+                                latex_data[(latex_data.samp_err == "0.0")
+                                       & (latex_data.expose_stack == "True")][model].values[0],
+                                latex_data[(latex_data.samp_err == "0.3")
+                                       & (latex_data.expose_stack == "True")][model].values[0]
+                            )
+                    )
+                output_latex.write(" \\\\ \\hline \n")
+
+
+
+
+

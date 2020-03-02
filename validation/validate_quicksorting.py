@@ -95,7 +95,7 @@ if __name__ == "__main__":
     if save_results:
         results_file.write('Validation on model: {}'.format(load_path) + ' \n')
 
-    for len_ in list(range(5, 31))+[60, 100]:
+    for len_ in np.arange(5, 60, 5).tolist()+[100]:
 
         print("** Start validation for len = {}".format(len_))
 
