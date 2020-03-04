@@ -95,7 +95,7 @@ if __name__ == "__main__":
     if save_results:
         results_file.write('Validation on model: {}'.format(load_path) + ' \n')
 
-    for len_ in np.arange(5, 60, 5).tolist()+[100]:
+    for len_ in np.arange(5, 65, 5).tolist()+[100]:
 
         print("** Start validation for len = {}".format(len_))
 
@@ -148,6 +148,9 @@ if __name__ == "__main__":
         mcts_rewards_mean = np.mean(np.array(mcts_rewards))
         network_only_rewards_mean = np.mean(np.array(network_only_rewards))
 
+        mcts_reward_mean_std = np.std(np.array(mcts_rewards_normalized))
+        network_only_rewards_mean_std = np.std(np.array(network_only_rewards))
+
         if verbose:
             print('Length: {}, mcts mean reward: {}, mcts mean normalized reward: {}, '
                   'network only mean reward: {}'.format(len_, mcts_rewards_mean, mcts_rewards_normalized_mean,
@@ -155,8 +158,8 @@ if __name__ == "__main__":
 
         if save_results:
             str = 'Length: {}, mcts mean reward: {}, mcts mean normalized reward: {}, ' \
-                  'network only mean reward: {}'.format(len_, mcts_rewards_mean, mcts_rewards_normalized_mean,
-                                                        network_only_rewards_mean)
+                  'network only mean reward: {}, mcts std: {}, net std: {}'.format(len_, mcts_rewards_mean, mcts_rewards_normalized_mean,
+                                                        network_only_rewards_mean, mcts_reward_mean_std, network_only_rewards_mean_std)
             results_file.write(str + ' \n')
 
     if save_results:
