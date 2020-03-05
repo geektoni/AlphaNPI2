@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument("--show", action="store_true", default=False)
     parser.add_argument("--net", action="store_true", default=False)
     parser.add_argument("--latex", action="store_true", default=False)
+    parser.add_argument("--std", action="store_true", default=False)
     args = parser.parse_args()
 
     result_files = glob.glob(args.dir+"/validation_*")
@@ -98,19 +99,21 @@ if __name__ == "__main__":
                 length = int(values[0].split(":")[1])
                 mcts_norm = float(values[2].split(":")[1])
                 net_mean = float(values[3].split(":")[1])
+                mcts_std = float(values[4].split(":")[1])
+                net_std = float(values[5].split(":")[1].replace("\n", ""))
 
                 # Appent the final result
-                total_results.append(results+[length, mcts_norm, net_mean])
+                total_results.append(results+[length, mcts_norm, net_mean, mcts_std, net_std])
 
     # Generate the pandas dataframe
-    df = pd.DataFrame(total_results, columns=["operation", "samp_err", "reduced", "no_part_upd", "expose_stack", "len", "mcts", "net"])
+    df = pd.DataFrame(total_results, columns=["operation", "samp_err", "reduced", "no_part_upd", "expose_stack", "len", "mcts", "net", "mcts_std", "net_std"])
     df.sort_values(by=["operation", "len", "samp_err"], inplace=True)
 
     data_op = df[df.operation == operation_name]
     total_data_op = []
     total_data_op_2 = []
     # Length of the lists
-    values_lengths = np.arange(5, 60, 5)
+    values_lengths = np.arange(5, 65, 5)
 
     # Choose which measure whats to read (mcts or net)
     method = "mcts" if not args.net else "net"
@@ -243,14 +246,15 @@ if __name__ == "__main__":
     # generate latex output
     if args.latex:
 
-        combinations = [["True", "False"],
+        combinations = [["False", "False"],
                         ["False", "True"],
-                        ["False", "False"]]
+                        ["True", "False"]]
 
         model = "mcts" if not args.net else "net"
+        std_name = "mcts_std" if not args.net else "net_std"
         with open("output_latex_{}.txt".format(model), "w+") as output_latex:
             method="QUICKSORT"
-            for v in [5, 20, 35, 50]:
+            for v in [5, 10, 20, 50]:
                 output_latex.write("{} ".format(v))
                 for c in combinations:
                     latex_data = df[(df.reduced == c[0])
@@ -258,21 +262,54 @@ if __name__ == "__main__":
                         & (df.len == v)
                         & (df.operation == method)]
 
+                    no_samp_no_stack = latex_data[(latex_data.samp_err == "0.0")
+                           & (latex_data.expose_stack == "False")][[model, std_name]].values[0]
+                    samp_no_stack = latex_data[(latex_data.samp_err == "0.3")
+                           & (latex_data.expose_stack == "False")][[model, std_name]].values[0]
+                    no_samp_stack = latex_data[(latex_data.samp_err == "0.0")
+                           & (latex_data.expose_stack == "True")][[model, std_name]].values[0]
+                    samp_stack = latex_data[(latex_data.samp_err == "0.3")
+                           & (latex_data.expose_stack == "True")][[model, std_name]].values[0]
+
+                    values = [no_samp_no_stack[0],
+                    samp_no_stack[0],
+                    no_samp_stack[0],
+                    samp_stack[0]]
+
+                    values_printable = [
+                    #"{:.2f}".format(no_samp_no_stack[0]),
+                    "{:.2f}".format(samp_no_stack[0]),
+                    #"{:.2f}".format(no_samp_stack[0]),
+                    "{:.2f}".format(samp_stack[0])
+                    ]
+
+                    values_std = [
+                        #"{:.2f}".format(no_samp_no_stack[1]),
+                        "{:.2f}".format(samp_no_stack[1]),
+                        #"{:.2f}".format(no_samp_stack[1]),
+                        "{:.2f}".format(samp_stack[1])
+                    ]
+
+                    max_value = max(values_printable)
+
+                    for i in range(0, len(values_printable)):
+                        if args.std:
+                            if values_printable[i] == max_value and values_printable[i] != "0.00":
+                                values_printable[i] = "\\textbf{" + values_printable[i] + "$\pm$" + values_std[i] + "}"
+                            else:
+                                values_printable[i] = values_printable[i] + "$\pm$" + values_std[i]
+                        else:
+                            if values_printable[i] == max_value and values_printable[i] != "0.00":
+                                values_printable[i] = "\\textbf{"+values_printable[i]+"}"
+                            else:
+                                values_printable[i] = values_printable[i]
+
                     output_latex.write(
-                            "& ({:.2f})-({:.2f}) & ({:.2f})-({:.2f})".format(
-                                latex_data[(latex_data.samp_err == "0.0")
-                                       & (latex_data.expose_stack == "False")][model].values[0],
-                                latex_data[(latex_data.samp_err == "0.3")
-                                       & (latex_data.expose_stack == "False")][model].values[0],
-                                latex_data[(latex_data.samp_err == "0.0")
-                                       & (latex_data.expose_stack == "True")][model].values[0],
-                                latex_data[(latex_data.samp_err == "0.3")
-                                       & (latex_data.expose_stack == "True")][model].values[0]
+                            "& {} & {}".format(
+                                values_printable[0],
+                                values_printable[1],
+                                #values_printable[2],
+                                #values_printable[3]
                             )
                     )
                 output_latex.write(" \\\\ \\hline \n")
-
-
-
-
-

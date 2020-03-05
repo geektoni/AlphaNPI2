@@ -9,6 +9,7 @@ if __name__ == "__main__":
     parser.add_argument("--file", type=str, default="complete_results.csv")
     parser.add_argument("--net", action="store_true", default=False)
     parser.add_argument("--stack", action="store_true", default=False)
+    parser.add_argument("--std", action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -31,6 +32,7 @@ if __name__ == "__main__":
     second_type = "No Stack" if args.stack else "$s=0.0$"
 
     model = "mcts" if not args.net else "net"
+    std_name = "mcts_std" if not args.net else "net_std"
     with open("output_latex_{}.txt".format(model), "w+") as output_latex:
 
         output_latex.write("""
@@ -57,17 +59,22 @@ if __name__ == "__main__":
 
                     if args.stack:
                         no_sampling = latex_data[(latex_data.samp_err == 0.3)
-                                                 & (latex_data.expose_stack == False)][model].values[0]
+                                                 & (latex_data.expose_stack == False)][[model, std_name]].values[0]
                         sampling = latex_data[(latex_data.samp_err == 0.3)
-                                              & (latex_data.expose_stack == True)][model].values[0]
+                                              & (latex_data.expose_stack == True)][[model, std_name]].values[0]
                     else:
                         no_sampling=latex_data[(latex_data.samp_err == 0.0)
-                                       & (latex_data.expose_stack == False)][model].values[0]
+                                       & (latex_data.expose_stack == False)][[model, std_name]].values[0]
                         sampling=latex_data[(latex_data.samp_err == 0.3)
-                                       & (latex_data.expose_stack == False)][model].values[0]
+                                       & (latex_data.expose_stack == False)][[model, std_name]].values[0]
 
-                    no_sampling_str = "\\textbf{{ {:.2f} }}".format(no_sampling) if no_sampling >= sampling else "{:.2f}".format(no_sampling)
-                    sampling_str = "\\textbf{{ {:.2f} }}".format(sampling) if no_sampling <= sampling else "{:.2f}".format(sampling)
+                    if args.std:
+                        no_sampling_str = "\\textbf{{ {:.2f}$\pm${:.2f} }}".format(no_sampling[0], no_sampling[1]) if no_sampling[0] >= sampling[0] else "{:.2f}$\pm${:.2f}".format(no_sampling[0], no_sampling[1])
+                        sampling_str = "\\textbf{{ {:.2f}$\pm${:.2f} }}".format(sampling[0], sampling[1]) if no_sampling[0] <= sampling[0] else "{:.2f}$\pm${:.2f}".format(sampling[0], sampling[1])
+                    else:
+                        no_sampling_str = "\\textbf{{ {:.2f} }}".format(no_sampling[0]) if no_sampling[0] >= sampling[0] else "{:.2f}".format(no_sampling[0])
+                        sampling_str = "\\textbf{{ {:.2f} }}".format(sampling[0]) if no_sampling[0] <= sampling[0] else "{:.2f}".format(sampling[0])
+                        
 
                     output_latex.write(
                         "& {} &  {}  ".format(
@@ -75,7 +82,7 @@ if __name__ == "__main__":
                         )
                     )
                 else:
-                    output_latex.write("& None &  None")
+                    output_latex.write("& None & None")
             output_latex.write(" \\\\ \\hline \n")
 
         output_latex.write("""
