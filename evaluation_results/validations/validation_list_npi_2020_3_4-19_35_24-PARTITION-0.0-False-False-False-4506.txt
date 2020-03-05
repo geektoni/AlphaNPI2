@@ -1,0 +1,14 @@
+Validation on model: ../evaluation_results/models/list_npi_2020_3_3-11_4_50-4506-False-False-1.0-False-0.0-False-False-True-False.pth 
+Length: 5, mcts mean reward: 0.8104671396399494, mcts mean normalized reward: 0.98, network only mean reward: 0.96, mcts std: 0.13999999999999999, net std: 0.19595917942265428 
+Length: 10, mcts mean reward: 0.7945662055614433, mcts mean normalized reward: 0.98, network only mean reward: 0.94, mcts std: 0.13999999999999999, net std: 0.23748684174075835 
+Length: 15, mcts mean reward: 0.8147074612217143, mcts mean normalized reward: 1.0, network only mean reward: 0.96, mcts std: 0.0, net std: 0.19595917942265428 
+Length: 20, mcts mean reward: 0.6830500267161976, mcts mean normalized reward: 0.94, network only mean reward: 0.92, mcts std: 0.2374868417407584, net std: 0.2712931993250107 
+Length: 25, mcts mean reward: 0.49810201682327315, mcts mean normalized reward: 0.86, network only mean reward: 0.94, mcts std: 0.3469870314579494, net std: 0.23748684174075838 
+Length: 30, mcts mean reward: 0.7030023356416781, mcts mean normalized reward: 0.94, network only mean reward: 0.94, mcts std: 0.23748684174075835, net std: 0.23748684174075838 
+Length: 35, mcts mean reward: 0.7483139087755254, mcts mean normalized reward: 0.98, network only mean reward: 0.92, mcts std: 0.13999999999999999, net std: 0.2712931993250107 
+Length: 40, mcts mean reward: 0.7363740679749883, mcts mean normalized reward: 0.96, network only mean reward: 0.88, mcts std: 0.19595917942265428, net std: 0.32496153618543844 
+Length: 45, mcts mean reward: 0.7137449486825909, mcts mean normalized reward: 0.94, network only mean reward: 0.94, mcts std: 0.23748684174075838, net std: 0.23748684174075838 
+Length: 50, mcts mean reward: 0.530144065318598, mcts mean normalized reward: 0.84, network only mean reward: 0.9, mcts std: 0.36660605559646714, net std: 0.3 
+Length: 55, mcts mean reward: 0.4992273565583011, mcts mean normalized reward: 0.84, network only mean reward: 0.98, mcts std: 0.36660605559646714, net std: 0.13999999999999999 
+Length: 60, mcts mean reward: 0.46651859560153497, mcts mean normalized reward: 0.82, network only mean reward: 0.92, mcts std: 0.3841874542459709, net std: 0.2712931993250107 
+Length: 100, mcts mean reward: 0.6349055560951679, mcts mean normalized reward: 0.92, network only mean reward: 0.98, mcts std: 0.2712931993250107, net std: 0.13999999999999999 
