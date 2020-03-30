@@ -239,6 +239,14 @@ def quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, in
     PUSH
     STOP
 
+    POP
+    SAVE_PTR1
+    PARTITION
+    LOAD_PTR1
+    DECREASE_CTR
+    PUSH
+    STOP
+
     :param scratchpad_ints:
     :param init_pointers_pos1:
     :param init_pointers_pos2:
@@ -325,6 +333,11 @@ if __name__ == "__main__":
 
         arr = np.random.randint(0, 100, 7)
         print("")
+
+        scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, counter = \
+        ([0, 6, 0, 6, 7, 7, 8], 4, 5, 0, [0,0,3], [-1], 5)
+        print(quicksort_update(scratchpad_ints, init_pointers_pos1, init_pointers_pos2, init_pointers_pos3, stack, temp, counter, sample=False))
+        break
 
         env = sample_quicksort_indexes(np.copy(arr), 7)
 
