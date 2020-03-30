@@ -8,7 +8,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-sns.set()
+sns.set(font_scale=1.3)
 plt.rcParams.update({'font.size': 40})
 
 
@@ -21,7 +21,7 @@ def autolabel(rects, ax, ann_size):
                     xy=(rect.get_x() + rect.get_width() / 2, height),
                     xytext=(0, 3),  # 3 points vertical offset
                     textcoords="offset points",
-                    ha='center', va='bottom', fontsize=ann_size)
+                    ha='center', va='bottom', fontsize=ann_size, fontweight="bold")
 
 
 if __name__ == "__main__":
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("--annotate", action="store_true", default=False)
     parser.add_argument("--title", action="store_true", default=False)
     parser.add_argument("--legend", action="store_true", default=False)
-    parser.add_argument("--annotation-size", type=int, default=6)
+    parser.add_argument("--annotation-size", type=int, default=10)
     parser.add_argument("--line", action="store_true", default=False)
     parser.add_argument("--show", action="store_true", default=False)
     parser.add_argument("--net", action="store_true", default=False)
@@ -45,12 +45,12 @@ if __name__ == "__main__":
     operation_name = args.op
 
     # Possible value combinations
-    combinations = [["True", "False", "False"],
-                    ["True", "False", "True"],
-                    ["False", "True", "False"],
-                    ["False", "True", "True"],
-                    ["False", "False", "False"],
-                    ["False", "False", "True"]
+    combinations = [["True", "False", "False"]
+                    #["True", "False", "True"],
+                    #["False", "True", "False"],
+                    #["False", "True", "True"],
+                    #["False", "False", "False"],
+                    #["False", "False", "True"]
                     ]
 
     #combinations = [["False", "False", "False"]]
@@ -113,7 +113,8 @@ if __name__ == "__main__":
     total_data_op = []
     total_data_op_2 = []
     # Length of the lists
-    values_lengths = np.arange(5, 65, 5)
+   #values_lengths = np.arange(5, 65, 5)
+    values_lengths = [5, 10, 20, 50]
 
     # Choose which measure whats to read (mcts or net)
     method = "mcts" if not args.net else "net"
@@ -137,7 +138,7 @@ if __name__ == "__main__":
         total_data_op.append(list_tot)
 
     x = np.arange(len(values_lengths))  # the label locations
-    width = 0.10  # the width of the bars
+    width = 0.30  # the width of the bars
     markers_list = itertools.cycle(('.', '^', 'v', 's', 'P', "*", "D"))
 
     if len(total_data_op) != 1 and len(total_data_op_2) != 1:
@@ -153,11 +154,11 @@ if __name__ == "__main__":
         ax = [ax, ax]
 
         if args.line:
-            rect = ax[0].plot(total_data_op[0], label="Uniform Sampling")
-            rect_2 = ax[0].plot(total_data_op_2[0], label="Uniform Sampling + Error Sampling")
+            rect = ax[0].plot(total_data_op[0], label="Stardard Training")
+            rect_2 = ax[0].plot(total_data_op_2[0], label="Re-train over ")
         else:
-            rect = ax[0].bar(x+width/2, total_data_op[0], width, label="Uniform Sampling")
-            rect_2 = ax[0].bar(x-width/2, total_data_op_2[0], width, label="Uniform Sampling + Error Sampling")
+            rect_2 = ax[0].bar(x - width / 2, total_data_op_2[0], width, label="Re-train with failed sequences")
+            rect = ax[0].bar(x+width/2, total_data_op[0], width, label="Default Training")
 
         rects.append((rect, ax[0]))
         rects.append((rect_2, ax[0]))
@@ -201,6 +202,10 @@ if __name__ == "__main__":
             ax[0].set_title("Without error sampling")
             ax[1].set_title("With error sampling")
 
+    plt.title("Validation Accuracy of learned QUICKSORT")
+    plt.xlabel("List Length", fontweight="bold")
+    plt.ylabel("Accuracy", fontweight="bold")
+
     ax[0].set_xticks(x)
     ax[0].set_xticklabels(values_lengths)
     ax[1].set_xticks(x)
@@ -219,7 +224,8 @@ if __name__ == "__main__":
 
         box = ax[1].get_position()
         ax[1].set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        ax[1].legend(loc='center left', bbox_to_anchor=(1, 0.5), title=operation_name, title_fontsize=10)
+        #title=operation_name
+        ax[1].legend(loc='center left', bbox_to_anchor=(1, 0.5), title_fontsize=10)
 
     if args.annotate:
         for r in rects:
@@ -238,7 +244,7 @@ if __name__ == "__main__":
         else:
             name = "mcts"
 
-        plt.savefig("{}_plot_{}.png".format(args.op, name), dpi=250, bbox_inches="tight")
+        plt.savefig("{}_plot_{}.png".format(args.op, name), dpi=300, bbox_inches="tight")
 
     # Save the results to file
     df.to_csv("complete_results.csv")
@@ -247,13 +253,14 @@ if __name__ == "__main__":
     if args.latex:
 
         combinations = [["False", "False"],
-                        ["False", "True"],
-                        ["True", "False"]]
+                        ["True", "False"],
+                        ["False", "True"]
+                        ]
 
         model = "mcts" if not args.net else "net"
         std_name = "mcts_std" if not args.net else "net_std"
         with open("output_latex_{}.txt".format(model), "w+") as output_latex:
-            method="QUICKSORT"
+            method=args.op
             for v in [5, 10, 20, 50]:
                 output_latex.write("{} ".format(v))
                 for c in combinations:
@@ -262,54 +269,59 @@ if __name__ == "__main__":
                         & (df.len == v)
                         & (df.operation == method)]
 
-                    no_samp_no_stack = latex_data[(latex_data.samp_err == "0.0")
-                           & (latex_data.expose_stack == "False")][[model, std_name]].values[0]
-                    samp_no_stack = latex_data[(latex_data.samp_err == "0.3")
-                           & (latex_data.expose_stack == "False")][[model, std_name]].values[0]
-                    no_samp_stack = latex_data[(latex_data.samp_err == "0.0")
-                           & (latex_data.expose_stack == "True")][[model, std_name]].values[0]
-                    samp_stack = latex_data[(latex_data.samp_err == "0.3")
-                           & (latex_data.expose_stack == "True")][[model, std_name]].values[0]
+                    if len(latex_data) == 4:
 
-                    values = [no_samp_no_stack[0],
-                    samp_no_stack[0],
-                    no_samp_stack[0],
-                    samp_stack[0]]
+                        no_samp_no_stack = latex_data[(latex_data.samp_err == "0.0")
+                               & (latex_data.expose_stack == "False")][[model, std_name]].values[0]
+                        samp_no_stack = latex_data[(latex_data.samp_err == "0.3")
+                               & (latex_data.expose_stack == "False")][[model, std_name]].values[0]
+                        no_samp_stack = latex_data[(latex_data.samp_err == "0.0")
+                               & (latex_data.expose_stack == "True")][[model, std_name]].values[0]
+                        samp_stack = latex_data[(latex_data.samp_err == "0.3")
+                               & (latex_data.expose_stack == "True")][[model, std_name]].values[0]
 
-                    values_printable = [
-                    #"{:.2f}".format(no_samp_no_stack[0]),
-                    "{:.2f}".format(samp_no_stack[0]),
-                    #"{:.2f}".format(no_samp_stack[0]),
-                    "{:.2f}".format(samp_stack[0])
-                    ]
+                        values = [no_samp_no_stack[0],
+                        samp_no_stack[0],
+                        no_samp_stack[0],
+                        samp_stack[0]]
 
-                    values_std = [
-                        #"{:.2f}".format(no_samp_no_stack[1]),
-                        "{:.2f}".format(samp_no_stack[1]),
-                        #"{:.2f}".format(no_samp_stack[1]),
-                        "{:.2f}".format(samp_stack[1])
-                    ]
+                        values_printable = [
+                        #"{:.2f}".format(no_samp_no_stack[0]),
+                        "{:.2f}".format(samp_no_stack[0]),
+                        #"{:.2f}".format(no_samp_stack[0]),
+                        "{:.2f}".format(samp_stack[0])
+                        ]
 
-                    max_value = max(values_printable)
+                        values_std = [
+                            #"{:.2f}".format(no_samp_no_stack[1]),
+                            "{:.2f}".format(samp_no_stack[1]),
+                            #"{:.2f}".format(no_samp_stack[1]),
+                            "{:.2f}".format(samp_stack[1])
+                        ]
 
-                    for i in range(0, len(values_printable)):
-                        if args.std:
-                            if values_printable[i] == max_value and values_printable[i] != "0.00":
-                                values_printable[i] = "\\textbf{" + values_printable[i] + "$\pm$" + values_std[i] + "}"
+                        max_value = max(values_printable)
+
+                        for i in range(0, len(values_printable)):
+                            if args.std:
+                                if values_printable[i] == max_value and values_printable[i] != "0.00":
+                                    values_printable[i] = "\\textbf{" + values_printable[i] + "$\pm$" + values_std[i] + "}"
+                                else:
+                                    values_printable[i] = values_printable[i] + "$\pm$" + values_std[i]
                             else:
-                                values_printable[i] = values_printable[i] + "$\pm$" + values_std[i]
-                        else:
-                            if values_printable[i] == max_value and values_printable[i] != "0.00":
-                                values_printable[i] = "\\textbf{"+values_printable[i]+"}"
-                            else:
-                                values_printable[i] = values_printable[i]
+                                if values_printable[i] == max_value and values_printable[i] != "0.00":
+                                    values_printable[i] = "\\textbf{"+values_printable[i]+"}"
+                                else:
+                                    values_printable[i] = values_printable[i]
 
-                    output_latex.write(
-                            "& {} & {}".format(
-                                values_printable[0],
-                                values_printable[1],
-                                #values_printable[2],
-                                #values_printable[3]
-                            )
-                    )
+                        output_latex.write(
+                                "& {} & {}".format(
+                                    values_printable[0],
+                                    values_printable[1],
+                                    #values_printable[2],
+                                    #values_printable[3]
+                                )
+                        )
+                    else:
+                        output_latex.write("& None & None")
+
                 output_latex.write(" \\\\ \\hline \n")

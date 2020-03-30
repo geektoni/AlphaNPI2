@@ -69,12 +69,12 @@ if __name__ == "__main__":
                                        & (latex_data.expose_stack == False)][[model, std_name]].values[0]
 
                     if args.std:
-                        no_sampling_str = "\\textbf{{ {:.2f}$\pm${:.2f} }}".format(no_sampling[0], no_sampling[1]) if no_sampling[0] >= sampling[0] else "{:.2f}$\pm${:.2f}".format(no_sampling[0], no_sampling[1])
-                        sampling_str = "\\textbf{{ {:.2f}$\pm${:.2f} }}".format(sampling[0], sampling[1]) if no_sampling[0] <= sampling[0] else "{:.2f}$\pm${:.2f}".format(sampling[0], sampling[1])
+                        no_sampling_str = "\\textbf{{ {:.2f}$\pm${:.2f} }}".format(no_sampling[0], no_sampling[1]) if no_sampling[0] >= sampling[0] and no_sampling[0] > 1**10-15  else "{:.2f}$\pm${:.2f}".format(no_sampling[0], no_sampling[1])
+                        sampling_str = "\\textbf{{ {:.2f}$\pm${:.2f} }}".format(sampling[0], sampling[1]) if no_sampling[0] <= sampling[0] and no_sampling[0] > 1**10-15 else "{:.2f}$\pm${:.2f}".format(sampling[0], sampling[1])
                     else:
-                        no_sampling_str = "\\textbf{{ {:.2f} }}".format(no_sampling[0]) if no_sampling[0] >= sampling[0] else "{:.2f}".format(no_sampling[0])
-                        sampling_str = "\\textbf{{ {:.2f} }}".format(sampling[0]) if no_sampling[0] <= sampling[0] else "{:.2f}".format(sampling[0])
-                        
+                        no_sampling_str = "\\textbf{{ {:.2f} }}".format(no_sampling[0]) if no_sampling[0] >= sampling[0] and no_sampling[0] > 1**10-15 else "{:.2f}".format(no_sampling[0])
+                        sampling_str = "\\textbf{{ {:.2f} }}".format(sampling[0]) if no_sampling[0] <= sampling[0] and sampling[0] > 1**10-15 else "{:.2f}".format(sampling[0])
+
 
                     output_latex.write(
                         "& {} &  {}  ".format(
