@@ -730,7 +730,7 @@ class QuickSortListEnv(Environment):
             if self.expose_stack:
                 final_observation = np.concatenate((topstack, bools), axis=0)
             else:
-                final_observation = np.concatenate((bools), axis=0)
+                final_observation = bools
 
         # If we are using the recursive version, then we store also the counter info
         if self.recursive_version:

@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--recursive-quicksort', help="The QUICKSORT function is made recursive.", default=False, action="store_true")
     parser.add_argument('--max-rec-depth', help="Maximum recursion depth", default=100, type=int)
     parser.add_argument('--max-quicksort-depth', help="Maximum recursion depth", default=15, type=int)
-    parser.add_argument('--do-not-expose-pointers-value', help="Do not expose pointers values in the observations", action="store_false", default=True)
+    parser.add_argument('--do-not-expose-pointers-values', help="Do not expose pointers values in the observations", action="store_false", default=True)
     args = parser.parse_args()
 
     # Get arguments
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     conf.gamma = args.gamma
     conf.penalize_level_0 = args.penalize_level_0
     conf.level_0_penalty = args.level_0_penalty
-    expose_pointers_values = args.do_not_expose_pointers_value
+    expose_pointers_values = args.do_not_expose_pointers_values
 
     # Verbose output
     if verbose:
