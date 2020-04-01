@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--recursive-quicksort', help="The QUICKSORT function is made recursive.", default=False, action="store_true")
     parser.add_argument('--max-rec-depth', help="Maximum recursion depth", default=100, type=int)
     parser.add_argument('--max-quicksort-depth', help="Maximum recursion depth", default=15, type=int)
+    parser.add_argument('--do-not-expose-pointers-value', help="Do not expose pointers values in the observations", action="store_false", default=True)
     args = parser.parse_args()
 
     # Get arguments
@@ -52,6 +53,7 @@ if __name__ == "__main__":
     conf.gamma = args.gamma
     conf.penalize_level_0 = args.penalize_level_0
     conf.level_0_penalty = args.level_0_penalty
+    expose_pointers_values = args.do_not_expose_pointers_value
 
     # Verbose output
     if verbose:
@@ -76,26 +78,29 @@ if __name__ == "__main__":
     ts = time.localtime(time.time())
     date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
     # Path to save policy
-    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
+    model_save_path = '../models/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.pth'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
                                                                            sample_error_prob, args.without_partition_update,
                                                                                     args.reduced_operation_set,
                                                                                     args.keep_training,
-                                                                                    args.recursive_quicksort)
+                                                                                    args.recursive_quicksort,
+                                                                                    expose_pointers_values)
     # Path to save results
-    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
+    results_save_path = '../results/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
                                                                               sample_error_prob, args.without_partition_update,
                                                                                        args.reduced_operation_set,
                                                                                        args.keep_training,
-                                                                                       args.recursive_quicksort)
+                                                                                       args.recursive_quicksort,
+                                                                                       expose_pointers_values)
     # Path to tensorboard
-    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
+    tensorboard_path = '{}/list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}-{}'.format(base_tb_dir, date_time, seed, args.structural_constraint,
                                                                args.penalize_level_0, args.level_0_penalty, args.expose_stack,
                                                                  sample_error_prob, args.without_partition_update,
                                                                           args.reduced_operation_set,
                                                                           args.keep_training,
-                                                                          args.recursive_quicksort)
+                                                                          args.recursive_quicksort,
+                                                                          expose_pointers_values)
 
     # Instantiate tensorboard writer
     if tensorboard:
@@ -114,7 +119,8 @@ if __name__ == "__main__":
                                sample_from_errors_prob=sample_error_prob,
                                without_partition_update=args.without_partition_update,
                                reduced_set=args.reduced_operation_set,
-                               recursive_version=args.recursive_quicksort)
+                               recursive_version=args.recursive_quicksort,
+                               expose_pointers_value=expose_pointers_values)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -187,7 +193,8 @@ if __name__ == "__main__":
                                sample_from_errors_prob=sample_error_prob,
                                without_partition_update=args.without_partition_update,
                                reduced_set=args.reduced_operation_set,
-                               recursive_version=args.recursive_quicksort)
+                               recursive_version=args.recursive_quicksort,
+                               expose_pointers_value=expose_pointers_values)
 
         if args.without_partition_update:
             max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
@@ -220,7 +227,8 @@ if __name__ == "__main__":
                                    validation_mode=True,
                                    without_partition_update=args.without_partition_update,
                                    reduced_set=args.reduced_operation_set,
-                                   recursive_version=args.recursive_quicksort)
+                                   recursive_version=args.recursive_quicksort,
+                                   expose_pointers_value=expose_pointers_values)
 
             if args.without_partition_update:
                 max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
