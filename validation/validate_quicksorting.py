@@ -60,8 +60,8 @@ if __name__ == "__main__":
     samp_err_poss = float(values[7])
     without_p_upd = values[8].lower() == "true"
     reduced_op_set = values[9].lower() == "true"
-    keep_training = values[10].split(".")[0].lower() == "true"
-
+    keep_training = values[10].lower() == "true"
+    do_not_expose_pointer_values = values[11].split(".")[0].lower() == "true"
 
     if save_results:
         # get date and time
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # Load environment constants
     env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
                                without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
-                               reduced_set=reduced_op_set)
+                               reduced_set=reduced_op_set, expose_pointers_value=do_not_expose_pointer_values)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -120,7 +120,8 @@ if __name__ == "__main__":
 
             env = QuickSortListEnv(length=len_, encoding_dim=conf.encoding_dim,
                                    expose_stack=expose_stack, without_partition_update=without_p_upd,
-                                   sample_from_errors_prob=samp_err_poss, reduced_set=reduced_op_set)
+                                   sample_from_errors_prob=samp_err_poss, reduced_set=reduced_op_set,
+                                   expose_pointers_value=do_not_expose_pointer_values)
 
             try:
                 operation_index = env.programs_library[args.operation]['index']
