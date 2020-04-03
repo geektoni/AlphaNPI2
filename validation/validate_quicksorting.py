@@ -61,19 +61,23 @@ if __name__ == "__main__":
     without_p_upd = values[8].lower() == "true"
     reduced_op_set = values[9].lower() == "true"
     keep_training = values[10].lower() == "true"
-    do_not_expose_pointer_values = values[11].split(".")[0].lower() == "true"
+    recursive_quicksort = values[11].lower() == "true"
+    do_not_expose_pointer_values = values[12].split(".")[0].lower() == "true"
 
     if save_results:
         # get date and time
         ts = time.localtime(time.time())
         date_time = '{}_{}_{}-{}_{}_{}'.format(ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
-        results_save_path = args.output_dir+'/validation_list_npi_{}-{}-{}-{}-{}-{}-{}.txt'.format(date_time, args.operation, samp_err_poss, reduced_op_set, without_p_upd, expose_stack, seed)
+        results_save_path = args.output_dir+'/validation_list_npi_{}-{}-{}-{}-{}-{}-{}-{}-{}.txt'.format(
+            date_time, args.operation, samp_err_poss, reduced_op_set, without_p_upd, expose_stack,
+            recursive_quicksort, do_not_expose_pointer_values, seed)
         results_file = open(results_save_path, 'w')
 
     # Load environment constants
     env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
                                without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
-                               reduced_set=reduced_op_set, expose_pointers_value=do_not_expose_pointer_values)
+                               reduced_set=reduced_op_set, expose_pointers_value=do_not_expose_pointer_values,
+                               recursive_version=recursive_quicksort)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -107,6 +111,8 @@ if __name__ == "__main__":
             max_depth_dict = {1: 3 * (len_ - 1) + 2, 2: 4, 3: 4, 4: len_ + 2}
         elif reduced_op_set:
             max_depth_dict = {1: 3 * (len_ - 1) + 2, 2: 6, 3: len_ + 2}
+        elif recursive_quicksort:
+            max_depth_dict = {1: 3 * (len_ - 1) + 2, 2: 7, 3: 3}
         else:
             max_depth_dict = {1: 3, 2: 2 * (len_ - 1) + 2, 3: 4, 4: 4, 5: len_ + 2}
 
@@ -121,6 +127,7 @@ if __name__ == "__main__":
             env = QuickSortListEnv(length=len_, encoding_dim=conf.encoding_dim,
                                    expose_stack=expose_stack, without_partition_update=without_p_upd,
                                    sample_from_errors_prob=samp_err_poss, reduced_set=reduced_op_set,
+                                   recursive_version=recursive_quicksort,
                                    expose_pointers_value=do_not_expose_pointer_values)
 
             try:
