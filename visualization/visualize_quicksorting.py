@@ -61,12 +61,14 @@ if __name__ == "__main__":
     without_p_upd = values[8].lower() == "true"
     reduced_op_set = values[9].lower() == "true"
     keep_training = values[10].lower() == "true"
-    recursive_quicksort = values[11].split(".")[0].lower() == "true"
+    recursive_quicksort = values[11].lower() == "true"
+    do_not_expose_pointer_values = values[12].split(".")[0].lower() == "true"
 
     # Load environment constants
     env_tmp = QuickSortListEnv(length=5, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
                                without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
-                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort)
+                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort,
+                               expose_pointers_value=do_not_expose_pointer_values)
     num_programs = env_tmp.get_num_programs()
     num_non_primary_programs = env_tmp.get_num_non_primary_programs()
     observation_dim = env_tmp.get_observation_dim()
@@ -108,7 +110,8 @@ if __name__ == "__main__":
     # Start debugging ...
     env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
                                without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
-                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort)
+                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort,
+                                expose_pointers_value=do_not_expose_pointer_values)
     program_index = env.programs_library[args.program]['index']
 
     total_reward = []
@@ -118,7 +121,8 @@ if __name__ == "__main__":
     for i in tqdm(range(args.iter)):
         env = QuickSortListEnv(length=length, encoding_dim=conf.encoding_dim, expose_stack=expose_stack,
                                without_partition_update=without_p_upd, sample_from_errors_prob=samp_err_poss,
-                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort)
+                               reduced_set=reduced_op_set, recursive_version=recursive_quicksort,
+                               expose_pointers_value=do_not_expose_pointer_values)
         mcts = MCTS(policy, env, program_index, **mcts_test_params)
         res = mcts.sample_execution_trace()
         root_node, r, failed_state_index = res[6], res[7], res[12]
