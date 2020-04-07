@@ -680,6 +680,8 @@ class QuickSortListEnv(Environment):
         is_pointer_3_less_than_2 = int(self.p3_pos < self.p2_pos)
         is_pointer_1_less_than_3 = int(self.p1_pos < self.p3_pos)
         is_pval_3_less_than_pval_2 = int(p3_val < p2_val)
+        is_pval_1_less_than_pval_2 = int(p1_val < p2_val)
+        is_pval_1_less_than_pval_3 = int(p1_val < p3_val)
         pt_1_left = int(self.p1_pos == 0)
         pt_2_left = int(self.p2_pos == 0)
         pt_3_left = int(self.p3_pos == 0)
@@ -716,7 +718,9 @@ class QuickSortListEnv(Environment):
             is_pointer_1_less_than_2,
             is_pointer_3_less_than_2,
             is_pointer_1_less_than_3,
-            is_pval_3_less_than_pval_2
+            is_pval_3_less_than_pval_2,
+            is_pval_1_less_than_pval_2,
+            is_pval_1_less_than_pval_3
         ])
         #return np.concatenate((p1p2p3, p1p2p3_pos, first_stack_pos, bools), axis=0)
 
@@ -747,14 +751,14 @@ class QuickSortListEnv(Environment):
         #return 3 * 10 + 3 + 2 + 12
         if self.expose_pointers_value:
             if self.expose_stack:
-                total_observation_dim = 3*10 + 2*10 + 16
+                total_observation_dim = 3*10 + 2*10 + 18
             else:
-                total_observation_dim = 3 * 10 + 16
+                total_observation_dim = 3 * 10 + 18
         else:
             if self.expose_stack:
-                total_observation_dim = 2*10 + 16
+                total_observation_dim = 2*10 + 18
             else:
-                total_observation_dim = 16
+                total_observation_dim = 18
 
         # Add information for the recursive version
         if self.recursive_version:
