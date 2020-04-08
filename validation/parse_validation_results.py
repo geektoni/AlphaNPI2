@@ -9,9 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set(font_scale=1.3)
+sns.set_context("paper")
 plt.rcParams.update({'font.size': 40})
-
-
 
 def autolabel(rects, ax, ann_size):
     """Attach a text label above each bar in *rects*, displaying its height."""
@@ -45,23 +44,20 @@ if __name__ == "__main__":
     operation_name = args.op
 
     # Possible value combinations
-    combinations = [["True", "False", "False"]
-                    #["True", "False", "True"],
-                    #["False", "True", "False"],
-                    #["False", "True", "True"],
-                    #["False", "False", "False"],
-                    #["False", "False", "True"]
+    # reduced, no_part_upd, expose_stack, recursive, expose_pointers
+    combinations = [["True", "False", "False", "False", "False"],
+                    ["False", "False", "False", "False", "False"],
+                    ["True", "False", "False", "False", "True"],
+                    ["False", "False", "False", "False", "True"],
+                    ["False", "False", "False", "True", "False"]
                     ]
 
-    #combinations = [["False", "False", "False"]]
-
     combinations_labels = [
-        "reduced (no stack)",
-        "reduced (stack)",
-        "without pd (no stack)",
-        "without pd (stack)",
-        "all (no stack)",
-        "all (stack)"
+        "reduced (no pointers)",
+        "all (no pointers)",
+        "reduced (pointers)",
+        "all (pointers)",
+        "recursive (no pointers)"
     ]
 
     total_results = []
@@ -77,9 +73,12 @@ if __name__ == "__main__":
         reduced_operation = file_name_values[4]
         without_partition = file_name_values[5]
         expose_stack = file_name_values[6]
+        recursive_quicksort = file_name_values[7]
+        do_not_expose_pointers = file_name_values[8]
 
         # File results
-        results = [operation, prob_samb_err, reduced_operation, without_partition, expose_stack]
+        results = [operation, prob_samb_err, reduced_operation, without_partition, expose_stack,
+                   recursive_quicksort, do_not_expose_pointers]
 
         with open(f, "r") as open_file:
 
@@ -106,15 +105,14 @@ if __name__ == "__main__":
                 total_results.append(results+[length, mcts_norm, net_mean, mcts_std, net_std])
 
     # Generate the pandas dataframe
-    df = pd.DataFrame(total_results, columns=["operation", "samp_err", "reduced", "no_part_upd", "expose_stack", "len", "mcts", "net", "mcts_std", "net_std"])
+    df = pd.DataFrame(total_results, columns=["operation", "samp_err", "reduced", "no_part_upd", "expose_stack", "recursive", "expose_pointers", "len", "mcts", "net", "mcts_std", "net_std"])
     df.sort_values(by=["operation", "len", "samp_err"], inplace=True)
 
     data_op = df[df.operation == operation_name]
     total_data_op = []
     total_data_op_2 = []
     # Length of the lists
-   #values_lengths = np.arange(5, 65, 5)
-    values_lengths = [5, 10, 20, 50]
+    values_lengths = np.arange(5, 65, 5)
 
     # Choose which measure whats to read (mcts or net)
     method = "mcts" if not args.net else "net"
@@ -127,9 +125,15 @@ if __name__ == "__main__":
             with_without_train = data_op[(data_op.reduced == c[0])
                         & (data_op.no_part_upd == c[1])
                         & (data_op.expose_stack == c[2])
-                        & (data_op.len == v)][method].to_list()
+                        & (data_op.len == v)
+                        & (data_op.recursive == c[3])
+                        & (data_op.expose_pointers == c[4])][method].to_list()
             if len(with_without_train) == 0:
                 list_tot.append(0)
+                list_tot_2.append(0)
+                continue
+            if len(with_without_train) == 1:
+                list_tot.append(with_without_train[0])
                 list_tot_2.append(0)
                 continue
             list_tot.append(with_without_train[0])
@@ -202,9 +206,6 @@ if __name__ == "__main__":
             ax[0].set_title("Without error sampling")
             ax[1].set_title("With error sampling")
 
-    plt.title("Validation Accuracy of learned QUICKSORT")
-    plt.xlabel("List Length", fontweight="bold")
-    plt.ylabel("Accuracy", fontweight="bold")
 
     ax[0].set_xticks(x)
     ax[0].set_xticklabels(values_lengths)
