@@ -152,6 +152,8 @@ if __name__ == "__main__":
         max_depth_dict = {1: 3 * (length - 1) + 2, 2: 4, 3: 4, 4: length + 2}
     elif args.reduced_operation_set:
         max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
+    elif args.recursive_quicksort:
+        max_depth_dict = {1: 3 * (length - 1) + 2, 2: 7, 3: 3}
     else:
         max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
@@ -235,7 +237,7 @@ if __name__ == "__main__":
             elif args.reduced_operation_set:
                 max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: length + 2}
             elif args.recursive_quicksort:
-                max_depth_dict = {1: 3 * (length - 1) + 2, 2: 6, 3: 3}
+                max_depth_dict = {1: 3 * (length - 1) + 2, 2: 7, 3: 3}
             else:
                 max_depth_dict = {1: 3, 2: 2 * (length - 1) + 2, 3: 4, 4: 4, 5: length + 2}
 
