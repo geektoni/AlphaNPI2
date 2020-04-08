@@ -9,7 +9,7 @@ operations=("PARTITION_UPDATE" "PARTITION" "SAVE_LOAD_PARTITION" "QUICKSORT_UPDA
 for op in ${operations[@]};
 do
     ((j=j%1)); ((j++==0)) && wait
-    for f in `ls ../final_models/*.pth`;
+    for f in `ls ../models/*.pth`;
     do
       echo "[*] Executing " ${op} ${f}
       execute_model ${f} ${op} &
