@@ -31,6 +31,24 @@ class ActorNet(Module):
         return x
 
 
+class ArgumentsNet(Module):
+    """
+    This class is used to generate the next arguments. The output is a triple
+    of three values which can be 0 or 1. Each of these values corresponds to
+    a pointer in the original environment.
+    """
+
+    def __init__(self, hidden_size, num_arguments=3):
+        super(ArgumentsNet, self).__init__()
+        self.l1 = Linear(hidden_size, hidden_size//2)
+        self.l2 = Linear(hidden_size//2, 2**num_arguments)
+
+    def forward(self, hidden_state):
+        x = F.relu(self.l1(hidden_state))
+        x = F.sigmoid(self.l2(x))
+        return np.where(x < 0.5, 0, 1)
+
+
 class Policy(Module):
     """This class represents the NPI policy containing the environment encoder, the key-value and program embedding
     matrices, the NPI core lstm and the value networks for each task.
@@ -66,6 +84,7 @@ class Policy(Module):
         self.lstm = LSTMCell(self.encoding_dim + self.embedding_dim, self._hidden_size)
         self.critic = CriticNet(self._hidden_size)
         self.actor = ActorNet(self._hidden_size, self.num_programs)
+        self.arguments = ArgumentsNet(self._hidden_size)
 
         self.init_networks()
         self.init_optimizer(lr=learning_rate)
@@ -85,6 +104,9 @@ class Policy(Module):
             uniform_(p, self._uniform_init[0], self._uniform_init[1])
 
         for p in self.actor.parameters():
+            uniform_(p, self._uniform_init[0], self._uniform_init[1])
+
+        for p in self.arguments.parameters():
             uniform_(p, self._uniform_init[0], self._uniform_init[1])
 
     def init_optimizer(self, lr):
@@ -137,7 +159,8 @@ class Policy(Module):
 
         actor_out = self.actor(new_h)
         critic_out = self.critic(new_h)
-        return actor_out, critic_out, new_h, new_c
+        args_out = self.arguments(new_h)
+        return actor_out, critic_out, args_out, new_h, new_c
 
     def train_on_batch(self, batch):
         """perform optimization step.
@@ -156,14 +179,16 @@ class Policy(Module):
 
         policy_labels = torch.squeeze(torch.stack(batch[3]))
         value_labels = torch.stack(batch[4]).view(-1, 1)
+        arguments_labels = torch.squeeze(torch.stack(batch[5]))
 
         self.optimizer.zero_grad()
-        policy_predictions, value_predictions, _, _ = self.predict_on_batch(e_t, i_t, h_t, c_t)
+        policy_predictions, value_predictions, args_predictions, _, _ = self.predict_on_batch(e_t, i_t, h_t, c_t)
 
         policy_loss = -torch.mean(policy_labels * torch.log(policy_predictions), dim=-1).mean()
         value_loss = torch.pow(value_predictions - value_labels, 2).mean()
+        arguments_loss = F.binary_cross_entropy(args_predictions, arguments_labels)
 
-        total_loss = (policy_loss + value_loss) / 2
+        total_loss = (policy_loss + value_loss + arguments_loss) / 2
         total_loss.backward()
         self.optimizer.step()
 
@@ -187,8 +212,8 @@ class Policy(Module):
         e_t, h, c = e_t.view(1, -1), h.view(1, -1), c.view(1, -1)
         with torch.no_grad():
             e_t = e_t.to(device)
-            actor_out, critic_out, new_h, new_c = self.predict_on_batch(e_t, [i_t], h, c)
-        return actor_out, critic_out, new_h, new_c
+            actor_out, critic_out, args_out, new_h, new_c = self.predict_on_batch(e_t, [i_t], h, c)
+        return actor_out, critic_out, args_out, new_h, new_c
 
     def init_tensors(self):
         """Creates tensors representing the internal states of the lstm filled with zeros.

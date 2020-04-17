@@ -164,11 +164,12 @@ class Environment(ABC):
         self.tasks_list = []
         self.has_been_reset = False
 
-    def act(self, primary_action):
+    def act(self, primary_action, arguments=None):
         """Apply a primary action that modifies the environment.
 
         Args:
           primary_action: action to apply
+          arguments: the arguments which needs to be given to the function
 
         Returns:
           the environment observation after the action has been applied
@@ -176,7 +177,7 @@ class Environment(ABC):
         """
         assert self.has_been_reset, 'Need to reset the environment before acting'
         assert primary_action in self.primary_actions, 'action {} is not defined'.format(primary_action)
-        self.prog_to_func[primary_action]()
+        self.prog_to_func[primary_action](arguments)
         return self.get_observation()
 
     def render(self):

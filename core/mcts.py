@@ -111,7 +111,7 @@ class MCTS:
 
         with torch.no_grad():
             mask = self.env.get_mask_over_actions(program_index)
-            priors, value, new_h, new_c = self.policy.forward_once(observation, program_index, h, c)
+            priors, value, new_args, new_h, new_c = self.policy.forward_once(observation, program_index, h, c)
             # mask actions
             priors = priors * torch.FloatTensor(mask)
             priors = torch.squeeze(priors)
@@ -133,6 +133,7 @@ class MCTS:
                 "env_state": env_state,
                 "h_lstm": new_h.clone(),
                 "c_lstm": new_c.clone(),
+                "args": new_args.clone(),
                 "selected": False,
                 "depth": depth + 1,
                 "program_call_count": program_call_count.copy()
@@ -148,7 +149,7 @@ class MCTS:
 
         # This reward will be propagated backwards through the tree
         value = float(value)
-        return node, value, new_h.clone(), new_c.clone()
+        return node, value, new_h.clone(), new_c.clone(), new_args.clone()
 
     def _compute_q_value(self, node):
         if node["visit_count"] > 0.0:
@@ -270,12 +271,13 @@ class MCTS:
                 node = self._estimate_q_val(node)
                 program_to_call_index = node['program_from_parent_index']
                 program_to_call = self.env.get_program_from_index(program_to_call_index)
+                arguments = node['args']
 
                 if program_to_call_index == self.env.programs_library['STOP']['index']:
                     stop = True
 
                 elif self.env.programs_library[program_to_call]['level'] == 0:
-                    observation = self.env.act(program_to_call)
+                    observation = self.env.act(program_to_call, arguments)
                     node['observation'] = observation
                     node['env_state'] = self.env.get_state()
 
@@ -374,6 +376,7 @@ class MCTS:
                 self.programs_index.append(root_node['program_index'])
                 self.observations.append(root_node['observation'])
                 self.previous_actions.append(root_node['program_from_parent_index'])
+                self.program_arguments.append(root_node['args'])
                 self.rewards.append(None)
 
                 # Spend some time expanding the tree from your current root node
@@ -459,6 +462,7 @@ class MCTS:
                 "env_state": self.env_init_state,
                 "h_lstm": state_h.clone(),
                 "c_lstm": state_c.clone(),
+                "args": None,
                 "depth": 0,
                 "selected": True,
                 "program_call_count": [0 for _ in range(0, len(self.env.programs_library))]
@@ -470,6 +474,7 @@ class MCTS:
             self.previous_actions = []
             self.mcts_policies = []
             self.lstm_states = []
+            self.program_arguments = []
             self.rewards = []
             self.programs_failed_indices = []
             self.programs_failed_initstates = []
@@ -501,7 +506,8 @@ class MCTS:
 
         return self.observations, self.programs_index, self.previous_actions, self.mcts_policies, \
                self.lstm_states, max_depth_reached, self.root_node, task_reward, self.clean_sub_executions, self.rewards, \
-               self.programs_failed_indices, self.programs_failed_initstates, self.programs_failed_states_indices
+               self.programs_failed_indices, self.programs_failed_initstates, self.programs_failed_states_indices, \
+               self.program_arguments
 
     def return_structural_penalty(self, node, condition=None):
         """

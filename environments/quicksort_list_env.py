@@ -81,24 +81,19 @@ class QuickSortListEnv(Environment):
             elif recursive_version:
                 self.programs_library = programs_library_reduced_recursive
             else:
-                self.programs_library = programs_library
+                self.programs_library = programs_library_with_arguments
 
             for idx, key in enumerate(sorted(list(self.programs_library.keys()))):
                 self.programs_library[key]['index'] = idx
 
             self.prog_to_func = OrderedDict(sorted({'STOP': self._stop,
-                                                    'PTR_1_LEFT': self._ptr_1_left,
-                                                    'PTR_2_LEFT': self._ptr_2_left,
-                                                    'PTR_3_LEFT': self._ptr_3_left,
-                                                    'PTR_1_RIGHT': self._ptr_1_right,
-                                                    'PTR_2_RIGHT': self._ptr_2_right,
-                                                    'PTR_3_RIGHT': self._ptr_3_right,
+                                                    'PTR_LEFT': self._ptr_left,
+                                                    'PTR_RIGHT': self._ptr_right,
                                                     'SWAP': self._swap,
-                                                    'SWAP_PIVOT': self._swap_pivot,
                                                     'PUSH': self._push,
                                                     'POP': self._pop,
-                                                    'SAVE_PTR_1': self._save_ptr_1,
-                                                    'LOAD_PTR_1': self._load_ptr_1,
+                                                    'SAVE_PTR': self._save_ptr,
+                                                    'LOAD_PTR': self._load_ptr,
                                                     'DECREASE_CTR': self._decrease_ctr}.items()))
 
             self.prog_to_precondition = OrderedDict(sorted({'STOP': self._stop_precondition,
@@ -108,18 +103,13 @@ class QuickSortListEnv(Environment):
                                                             'QUICKSORT_UPDATE': self._quicksort_update_precondition,
                                                             'QUICKSORT_UPDATE_REC': self._quick_sort_update_recursive_precondition,
                                                             'QUICKSORT': self._quicksort_precondition,
-                                                            'PTR_1_LEFT': self._ptr_1_left_precondition,
-                                                            'PTR_2_LEFT': self._ptr_2_left_precondition,
-                                                            'PTR_3_LEFT': self._ptr_3_left_precondition,
-                                                            'PTR_1_RIGHT': self._ptr_1_right_precondition,
-                                                            'PTR_2_RIGHT': self._ptr_2_right_precondition,
-                                                            'PTR_3_RIGHT': self._ptr_3_right_precondition,
+                                                            'PTR_LEFT': self._ptr_left_precondition,
+                                                            'PTR_RIGHT': self._ptr_left_precondition,
                                                             'SWAP': self._swap_precondition,
-                                                            'SWAP_PIVOT': self._swap_pivot_precondition,
                                                             'PUSH': self._push_precondition,
                                                             'POP': self._pop_precondition,
-                                                            'SAVE_PTR_1': self._save_ptr_1_precondition,
-                                                            'LOAD_PTR_1': self._load_ptr_1_precondition,
+                                                            'SAVE_PTR': self._save_ptr_precondition,
+                                                            'LOAD_PTR': self._load_ptr_precondition,
                                                             'DECREASE_CTR': self._decrease_ctr_precondition}.items()))
 
             self.prog_to_postcondition = OrderedDict(sorted({
@@ -178,6 +168,30 @@ class QuickSortListEnv(Environment):
     def _stop_precondition(self):
         return True
 
+    def _ptr_left(self, arguments):
+        if self.p1_pos > 0:
+            self.p1_pos -= arguments[0]
+        if self.p2_pos > 0:
+            self.p2_pos -= arguments[1]
+        if self.p3_pos > 0:
+            self.p3_pos -= arguments[2]
+
+    def _ptr_left_precondition(self):
+        return self.p1_pos > 0 or self.p2_pos > 0 or self.p3_pos > 0
+
+    def _ptr_right(self, arguments):
+        if self.p1_pos < (self.length-1):
+            self.p1_pos += arguments[0]
+        if self.p2_pos < (self.length-1):
+            self.p2_pos += arguments[1]
+        if self.p3_pos < (self.length-1):
+            self.p3_pos += arguments[2]
+
+    def _ptr_right_precondition(self):
+        return self.p1_pos < (self.length-1) \
+               or self.p2_pos < (self.length-1) \
+               or self.p3_pos < (self.length-1)
+
     def _ptr_1_left(self):
         """Move pointer 1 to the left."""
         if self.p1_pos > 0:
@@ -226,12 +240,25 @@ class QuickSortListEnv(Environment):
     def _ptr_3_right_precondition(self):
         return self.p3_pos < self.length - 1
 
-    def _swap(self):
+    def _swap(self, arguments):
         """Swap the elements pointed by pointers 1 and 2."""
-        self.scratchpad_ints[[self.p1_pos, self.p2_pos]] = self.scratchpad_ints[[self.p2_pos, self.p1_pos]]
+        total=0
+        swap_index = []
+        for index in range(len(arguments)):
+            if arguments[index] == 1:
+                total +=1
+                swap_index.append(index)
+
+        if total < 2:
+            self.scratchpad_ints[[self.p1_pos, self.p2_pos]] = self.scratchpad_ints[[self.p2_pos, self.p1_pos]]
+        else:
+            pointers = [self.p1_pos, self.p2_pos, self.p3_pos]
+            self.scratchpad_ints[[pointers[swap_index[0]], pointers[swap_index[1]]]] = \
+                self.scratchpad_ints[[pointers[swap_index[1]], pointers[swap_index[0]]]]
+
 
     def _swap_precondition(self):
-        return self.p1_pos != self.p2_pos
+        return self.p1_pos != self.p2_pos and self.p1_pos != self.p3_pos
 
     def _swap_pivot(self):
         """Swap the elements pointed by pointers 1 and 3"""
@@ -240,7 +267,7 @@ class QuickSortListEnv(Environment):
     def _swap_pivot_precondition(self):
         return self.p1_pos != self.p3_pos #and self.scratchpad_ints[self.p3_pos] < self.scratchpad_ints[self.p2_pos]
 
-    def _push(self):
+    def _push(self, arguments):
         if self.p1_pos+1 < self.p2_pos:
             self.prog_stack.append(self.p1_pos+1)
             self.prog_stack.append(self.p2_pos)
@@ -253,7 +280,7 @@ class QuickSortListEnv(Environment):
     def _push_precondition(self):
         return self.p1_pos+1 < self.p2_pos or (self.p1_pos-1 > 0 and self.p3_pos < self.p1_pos - 1)
 
-    def _pop(self):
+    def _pop(self, arguments):
         if len(self.prog_stack) >= 3:
             self.p1_pos = self.prog_stack.pop()
             self.p2_pos = self.prog_stack.pop()
@@ -262,18 +289,34 @@ class QuickSortListEnv(Environment):
     def _pop_precondition(self):
         return len(self.prog_stack) >=3
 
-    def _save_ptr_1(self):
+    def _save_ptr(self, arguments):
+        for element in zip(arguments, [self.p1_pos, self.p2_pos, self.p3_pos]):
+            if element[0] == 1:
+                self.temp_variables[0] = element[1]
+                break
         self.temp_variables[0] = self.p1_pos
 
-    def _save_ptr_1_precondition(self):
+    def _save_ptr_precondition(self):
         return True
 
-    def _load_ptr_1(self):
+    def _load_ptr(self, arguments):
         if self.temp_variables[0] != -1:
-            self.p3_pos = self.temp_variables[0]
+            load_index = -1
+            for index in range(len(arguments)):
+                if arguments[index] == 1:
+                    load_index = index
+                    break
+            if load_index == 0:
+                self.p1_pos = self.temp_variables[0]
+            elif load_index == 1:
+                self.p2_pos = self.temp_variables[0]
+            elif load_index == 2:
+                self.p3_pos = self.temp_variables[0]
+            else:
+                self.p1_pos = self.temp_variables[0]
             self.temp_variables[0] = -1
 
-    def _load_ptr_1_precondition(self):
+    def _load_ptr_precondition(self):
         return self.temp_variables[0] != -1
 
     def _decrease_ctr(self):
