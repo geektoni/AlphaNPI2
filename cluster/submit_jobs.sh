@@ -28,6 +28,14 @@ fi
 export output_dir_tb=${4}
 export seed=${5}
 
-export result_name=${1}-${2}-${3}-${5}
+export expose_pointers=""
+if [ ${6} == "True" ]; then
+  export expose_pointers="--do-not-expose-pointers-values"
+else
+  export expose_pointers="none"
+fi
+
+
+export result_name=${1}-${2}-${3}-${5}-${6}
 
 qsub -V -N "$result_name" -q common_cpuQ train_model.sh
