@@ -7,7 +7,7 @@ seed = random.randint(0, 10000)
 
 configs = ["complete", "without-partition-update", "reduced", "recursive"]
 stack = [True, False]
-train_errors = [True, False]
+train_errors = [0.3, 0.0]
 expose_pointers = [True, False]
 output_tb_dir = "./final_results_tb"
 

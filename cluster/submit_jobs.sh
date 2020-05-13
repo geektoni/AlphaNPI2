@@ -18,12 +18,7 @@ else
   export stack="none"
 fi
 
-export train_errors=""
-if [ ${3} == "True" ]; then
-  export train_errors="0.0"
-else
-  export train_errors="0.3"
-fi
+export train_errors=${3}
 
 export output_dir_tb=${4}
 export seed=${5}
