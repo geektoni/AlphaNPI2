@@ -254,6 +254,7 @@ class MCTS:
         max_depth_reached = False
         max_recursion_reached = False
         has_expanded_a_node = False
+        failed_simulation = False
         value = None
         program_level = self.env.get_program_level_from_index(node['program_index'])
 
@@ -267,7 +268,17 @@ class MCTS:
                 has_expanded_a_node = True
 
             else:
-                node = self._estimate_q_val(node)
+                best_node = self._estimate_q_val(node)
+
+                # Check this corner case. If this happened, then we
+                # failed this simulation and its reward will be -1.
+                if best_node is None:
+                    failed_simulation = True
+                    break
+                else:
+                    node = best_node
+
+
                 program_to_call_index = node['program_from_parent_index']
                 program_to_call = self.env.get_program_from_index(program_to_call_index)
 
@@ -342,7 +353,7 @@ class MCTS:
                     node['observation'] = observation
                     node['env_state'] = self.env.get_state()
 
-        return max_depth_reached, has_expanded_a_node, node, value
+        return max_depth_reached, has_expanded_a_node, node, value, failed_simulation
 
     def _play_episode(self, root_node):
         """Performs an MCTS search using the policy network as a prior and returns a sequence of improved decisions.
@@ -380,10 +391,12 @@ class MCTS:
                 for _ in range(self.number_of_simulations):
                     # run a simulation
                     self.recursive_call = False
-                    simulation_max_depth_reached, has_expanded_node, node, value = self._run_simulation(root_node)
+                    simulation_max_depth_reached, has_expanded_node, node, value, failed_simulation = self._run_simulation(root_node)
 
                     # get reward
-                    if not simulation_max_depth_reached and not has_expanded_node:
+                    if failed_simulation:
+                        value = -1.0
+                    elif not simulation_max_depth_reached and not has_expanded_node:
                         # if node corresponds to end of an episode, backprogagate real reward
                         reward = self.env.get_reward()
                         if reward > 0:
